@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/cream"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Configurações"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_dark"/>
+
+        <EditText
+            android:id="@+id/etPlantName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome da planta"
+            android:layout_marginTop="20dp"/>
+
+        <EditText
+            android:id="@+id/etPlantSpecies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Espécie da planta"
+            android:layout_marginTop="20dp"/>
+
+        <EditText
+            android:id="@+id/etTopic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tópico MQTT"
+            android:layout_marginTop="12dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Salvar"
+            android:layout_marginTop="16dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            app:backgroundTint="@color/green_dark"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sair"
+            android:layout_marginTop="16dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            app:backgroundTint="@color/danger"/>
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.PlantsIOT" parent="Theme.Material3.Light.NoActionBar">
+    <item name="colorPrimary">@color/green_dark</item>
+    <item name="colorSecondary">@color/accent_gold</item>
+    <item name="android:statusBarColor">@color/green_dark</item>
+    <item name="android:navigationBarColor">@color/cream</item>
+    <item name="android:windowBackground">@color/cream</item>
+    </style>
+</resources>

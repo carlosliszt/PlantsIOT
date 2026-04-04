@@ -42,6 +42,15 @@
             android:inputType="textPassword"
             android:layout_marginTop="12dp"/>
 
+        <TextView
+            android:id="@+id/tvLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Já tem uma conta? Faça login!"
+            android:textStyle="bold"
+            android:textColor="@color/accent_gold"
+            android:layout_marginTop="16dp"/>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegister"
             android:layout_width="match_parent"

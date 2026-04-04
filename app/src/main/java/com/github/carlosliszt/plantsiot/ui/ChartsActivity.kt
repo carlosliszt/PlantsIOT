@@ -1,8 +1,11 @@
 package com.github.carlosliszt.plantsiot.ui
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.databinding.ActivityChartsBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import com.github.mikephil.charting.data.*
@@ -20,7 +23,32 @@ class ChartsActivity : AppCompatActivity() {
         binding = ActivityChartsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        applySystemInsets()
+
+        binding.btnReturn.setOnClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
+
         loadCharts()
+    }
+
+    private fun applySystemInsets() {
+        val root = binding.root
+        val initialLeft = root.paddingLeft
+        val initialTop = root.paddingTop
+        val initialRight = root.paddingRight
+        val initialBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                initialLeft + bars.left,
+                initialTop + bars.top,
+                initialRight + bars.right,
+                initialBottom + bars.bottom )
+            insets }
+
+        ViewCompat.requestApplyInsets(root)
     }
 
     private fun loadCharts() {

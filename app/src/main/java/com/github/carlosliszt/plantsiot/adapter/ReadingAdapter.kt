@@ -33,6 +33,7 @@ class ReadingAdapter(private val items: List<PlantReading>) :
         holder.binding.tvStatus.text = item.healthStatus
         holder.binding.tvHeight.text = "Altura: ${item.heightCm} cm"
         holder.binding.tvScore.text = "Score: ${item.healthScore}"
+        holder.binding.tvNotes.text = item.notes
         holder.binding.tvDate.text = sdf.format(Date(item.timestamp))
     }
 }

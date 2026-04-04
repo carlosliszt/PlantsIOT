@@ -44,7 +44,7 @@ class MqttManager {
             client?.subscribe(topic, 1)
 
         } catch (e: Exception) {
-            Log.e("MQTT", "Erro ao conectar", e)
+            Log.e("MQTT", "Erro ao conectar\n" + e.printStackTrace(), e)
         }
     }
 

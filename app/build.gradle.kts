@@ -1,6 +1,13 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+}
+
+val localProperties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
 }
 
 android {
@@ -9,6 +16,8 @@ android {
         version = release(36)
     }
 
+
+
     defaultConfig {
         applicationId = "com.github.carlosliszt.plantsiot"
         minSdk = 24
@@ -16,8 +25,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "MQTT_USER", "\"${project.properties["MQTT_USER"]}\"")
-        buildConfigField("String", "MQTT_PASS", "\"${project.properties["MQTT_PASS"]}\"")
+        val mqttUser = localProperties.getProperty("MQTT_USER") ?: ""
+        val mqttPass = localProperties.getProperty("MQTT_PASS") ?: ""
+
+        buildConfigField("String", "MQTT_USER", "\"$mqttUser\"")
+        buildConfigField("String", "MQTT_PASS", "\"$mqttPass\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

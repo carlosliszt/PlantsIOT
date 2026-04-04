@@ -3,6 +3,8 @@ package com.github.carlosliszt.plantsiot.ui
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.databinding.ActivityDashboardBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
@@ -19,6 +21,8 @@ class DashboardActivity : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        applySystemInsets()
+
         mqttManager = MqttManager()
         mqttManager.connectAndSubscribe("planta/esp32cam/analysis")
 
@@ -33,6 +37,24 @@ class DashboardActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         mqttManager.disconnect()
+    }
+
+    private fun applySystemInsets() {
+        val root = binding.root
+        val initialLeft = root.paddingLeft
+        val initialTop = root.paddingTop
+        val initialRight = root.paddingRight
+        val initialBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                initialLeft + bars.left,
+                initialTop + bars.top,
+                initialRight + bars.right,
+                initialBottom + bars.bottom )
+            insets }
+
+        ViewCompat.requestApplyInsets(root)
     }
 
     private fun loadLastReading() {

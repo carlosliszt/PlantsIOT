@@ -84,7 +84,7 @@ class ChartsActivity : AppCompatActivity() {
             Entry(index.toFloat(), item.heightCm.toFloat())
         }
 
-        val dataSet = LineDataSet(entries, "Crescimento (cm)").apply {
+        val dataSet = LineDataSet(entries, "Altura (cm)").apply {
             lineWidth = 3f
             valueTextSize = 10f
             circleRadius = 4f
@@ -129,7 +129,9 @@ class ChartsActivity : AppCompatActivity() {
             this.data = data
 
             setUsePercentValues(true)
-            description.isEnabled = false
+            description.isEnabled = true
+            description.text = "Coloração da planta"
+
 
             centerText = latest.healthStatus
             setCenterTextSize(16f)

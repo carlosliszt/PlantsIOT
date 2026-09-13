@@ -1,13 +1,5 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.google.gms.google.services)
-}
-
-val localProperties = Properties().apply {
-    load(FileInputStream(rootProject.file("local.properties")))
 }
 
 android {
@@ -25,11 +17,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        val mqttUser = localProperties.getProperty("MQTT_USER") ?: ""
-        val mqttPass = localProperties.getProperty("MQTT_PASS") ?: ""
-
-        buildConfigField("String", "MQTT_USER", "\"$mqttUser\"")
-        buildConfigField("String", "MQTT_PASS", "\"$mqttPass\"")
+        buildConfigField("String", "MQTT_BROKER", "\"ssl://3324ab5a5cd44751b6c3aacc57b60320.s1.eu.hivemq.cloud:8883\"")
+        buildConfigField("String", "MQTT_USER", "\"alice\"")
+        buildConfigField("String", "MQTT_PASS", "\"123456789\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

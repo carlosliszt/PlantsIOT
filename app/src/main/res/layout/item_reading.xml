@@ -35,6 +35,19 @@
             android:layout_marginTop="4dp"/>
 
         <TextView
+            android:id="@+id/tvEnvironment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvRgb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/tvNotes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -45,9 +58,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvTopic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp" />
     </LinearLayout>
 
 
 
 </com.google.android.material.card.MaterialCardView>
-

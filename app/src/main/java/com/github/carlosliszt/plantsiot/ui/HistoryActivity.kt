@@ -7,10 +7,9 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.carlosliszt.plantsiot.adapter.ReadingAdapter
+import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityHistoryBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
 
 class HistoryActivity : AppCompatActivity() {
 
@@ -55,26 +54,8 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun loadHistory() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val ref = FirebaseDatabase.getInstance().reference .child("plants")
-            .child(uid)
-            .child("planta01")
-            .child("readings")
-
-        ref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                list.clear()
-
-                snapshot.children.forEach { child ->
-                    val item = child.getValue(PlantReading::class.java)
-                    if (item != null) list.add(item)
-                }
-
-                list.sortByDescending { it.timestamp }
-                adapter.notifyDataSetChanged()
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
+        list.clear()
+        list.addAll(ReadingStore(this).getAll().sortedByDescending { it.timestamp })
+        adapter.notifyDataSetChanged()
     }
 }

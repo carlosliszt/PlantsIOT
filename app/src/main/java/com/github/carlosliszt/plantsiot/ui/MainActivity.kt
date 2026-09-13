@@ -6,36 +6,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseDatabase.getInstance().reference
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (auth.currentUser == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         applySystemInsets()
 
-        val uid = auth.currentUser!!.uid
-
-        db.child("users").child(uid).child("name").get()
-            .addOnSuccessListener {
-                val name = it.getValue(String::class.java) ?: "Usuário"
-                binding.tvWelcome.text = "Olá, $name"
-            }
+        val name = getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
+            .getString("user_name", "Cuidador") ?: "Cuidador"
+        binding.tvWelcome.text = "Olá, $name"
 
         binding.cardDashboard.setOnClickListener {
             startActivity(Intent(this, DashboardActivity::class.java))

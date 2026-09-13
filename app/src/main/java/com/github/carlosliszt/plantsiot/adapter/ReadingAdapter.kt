@@ -33,7 +33,12 @@ class ReadingAdapter(private val items: List<PlantReading>) :
         holder.binding.tvStatus.text = item.healthStatus
         holder.binding.tvHeight.text = "Altura: ${item.heightCm} cm"
         holder.binding.tvScore.text = "Score: ${item.healthScore}"
-        holder.binding.tvNotes.text = item.notes
+        holder.binding.tvEnvironment.text =
+            "Temperatura: ${item.temperatureC} °C  •  Ar: ${item.airHumidity}%\n" +
+            "Solo: ${item.soilMoisture}%  •  Luz: ${item.luminosity} lux  •  pH: ${item.ph}"
+        holder.binding.tvRgb.text = "RGB: ${item.red}, ${item.green}, ${item.blue}"
+        holder.binding.tvNotes.text = item.notes.ifBlank { "Sem observações" }
+        holder.binding.tvTopic.text = "Tópico: ${item.sourceTopic}"
         holder.binding.tvDate.text = sdf.format(Date(item.timestamp))
     }
 }

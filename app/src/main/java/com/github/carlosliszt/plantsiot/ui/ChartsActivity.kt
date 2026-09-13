@@ -6,12 +6,11 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityChartsBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.PercentFormatter
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.*
 
 class ChartsActivity : AppCompatActivity() {
 
@@ -52,45 +51,36 @@ class ChartsActivity : AppCompatActivity() {
     }
 
     private fun loadCharts() {
-        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
-
-        val ref = FirebaseDatabase.getInstance().reference
-            .child("plants")
-            .child(uid)
-            .child("planta01")
-            .child("readings")
-
-        ref.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                readings.clear()
-
-                snapshot.children.forEach {
-                    val item = it.getValue(PlantReading::class.java)
-                    if (item != null) readings.add(item)
-                }
-
-                readings.sortBy { it.timestamp }
-
-                drawLineChart()
-                drawPieChart()
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
+        readings.clear()
+        readings.addAll(ReadingStore(this).getAll().sortedBy { it.timestamp })
+        drawLineChart()
+        drawPieChart()
     }
 
     private fun drawLineChart() {
-        val entries = readings.mapIndexed { index, item ->
-            Entry(index.toFloat(), item.heightCm.toFloat())
+        val temperatureEntries = readings.mapIndexed { index, item ->
+            Entry(index.toFloat(), item.temperatureC.toFloat())
+        }
+        val phEntries = readings.mapIndexed { index, item ->
+            Entry(index.toFloat(), item.ph.toFloat())
         }
 
-        val dataSet = LineDataSet(entries, "Altura (cm)").apply {
+        val temperatureSet = LineDataSet(temperatureEntries, "Temperatura (°C)").apply {
             lineWidth = 3f
             valueTextSize = 10f
             circleRadius = 4f
+            color = Color.rgb(239, 108, 68)
+            setCircleColor(Color.rgb(239, 108, 68))
+        }
+        val phSet = LineDataSet(phEntries, "pH").apply {
+            lineWidth = 3f
+            valueTextSize = 10f
+            circleRadius = 4f
+            color = Color.rgb(47, 125, 105)
+            setCircleColor(Color.rgb(47, 125, 105))
         }
 
-        binding.lineChart.data = LineData(dataSet)
+        binding.lineChart.data = LineData(temperatureSet, phSet)
         binding.lineChart.description.isEnabled = false
         binding.lineChart.invalidate()
     }
@@ -102,18 +92,17 @@ class ChartsActivity : AppCompatActivity() {
 
         val entries = mutableListOf<PieEntry>()
 
-        if (latest.greenIndex > 0)
-            entries.add(PieEntry(latest.greenIndex.toFloat(), "Verde"))
-
-        if (latest.yellowIndex > 0)
-            entries.add(PieEntry(latest.yellowIndex.toFloat(), "Amarelo"))
+        if (latest.red > 0) entries.add(PieEntry(latest.red.toFloat(), "R"))
+        if (latest.green > 0) entries.add(PieEntry(latest.green.toFloat(), "G"))
+        if (latest.blue > 0) entries.add(PieEntry(latest.blue.toFloat(), "B"))
 
         if (entries.isEmpty()) return
 
         val dataSet = PieDataSet(entries, "").apply {
             colors = listOf(
+                Color.rgb(230, 72, 72),
                 Color.rgb(76, 175, 80),
-                Color.rgb(255, 193, 7)
+                Color.rgb(66, 133, 244)
             )
 
             valueTextSize = 14f
@@ -130,7 +119,7 @@ class ChartsActivity : AppCompatActivity() {
 
             setUsePercentValues(true)
             description.isEnabled = true
-            description.text = "Coloração da planta"
+            description.text = "Composição RGB"
 
 
             centerText = latest.healthStatus

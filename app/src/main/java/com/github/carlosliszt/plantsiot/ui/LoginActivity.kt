@@ -7,26 +7,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.databinding.ActivityLoginBinding
-import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         applySystemInsets()
-
-        auth = FirebaseAuth.getInstance()
-
-        if (auth.currentUser != null) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
-        }
 
         binding.btnLogin.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
@@ -37,14 +27,11 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Erro: ${it.message}", Toast.LENGTH_LONG).show()
-                }
+            val name = email.substringBefore('@').ifBlank { "Cuidador" }
+            getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
+                .edit().putString("user_name", name).apply()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
         }
 
         binding.tvRegister.setOnClickListener {

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/cream"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/cream"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,100 +16,149 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Dashboard da Planta"
+            android:textColor="@color/green_dark"
             android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/green_dark"/>
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvConnectionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Conectando ao HiveMQ..."
+            android:textColor="@color/accent_gold"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvLastUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Aguardando a primeira leitura"
+            android:textColor="@color/text_dark" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:cardCornerRadius="24dp">
+            app:cardCornerRadius="22dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/mint"
-                android:padding="20dp"
-                android:orientation="vertical">
+                android:background="@android:color/white"
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status"
-                    android:textStyle="bold"
-                    android:textSize="20sp"/>
+                    android:text="Sensores ambientais"
+                    android:textColor="@color/green_dark"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/tvHealthStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Carregando..."
-                    android:textSize="18sp"
-                    android:layout_marginTop="8dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Temperatura" android:textStyle="bold" />
+                <TextView android:id="@+id/tvTemperature" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0,0 °C" android:textSize="18sp" />
 
-                <TextView
-                    android:id="@+id/tvHealthScore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pontuação"
-                    android:layout_marginTop="8dp"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Umidade do ar" android:textStyle="bold" />
+                <TextView android:id="@+id/tvAirHumidity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0,0 %" android:textSize="18sp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Umidade do solo" android:textStyle="bold" />
+                <TextView android:id="@+id/tvSoilMoisture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0,0 %" android:textSize="18sp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Luminosidade" android:textStyle="bold" />
+                <TextView android:id="@+id/tvLuminosity" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0,0 lux" android:textSize="18sp" />
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="pH" android:textStyle="bold" />
+                <TextView android:id="@+id/tvPh" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0,0" android:textSize="18sp" />
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:cardCornerRadius="24dp">
+            app:cardCornerRadius="22dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="20dp"
+                android:background="@color/mint"
                 android:orientation="vertical"
-                android:background="@android:color/white">
+                android:padding="20dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Crescimento"
-                    android:textStyle="bold"
-                    android:textSize="20sp"/>
+                    android:text="Cor RGB e saúde"
+                    android:textColor="@color/green_dark"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:id="@+id/viewRgbColor"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="12dp" />
 
                 <TextView
-                    android:id="@+id/tvHeight"
+                    android:id="@+id/tvRgb"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Altura estimada"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="10dp"
+                    android:text="R 0   G 0   B 0"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvNotes"
+                    android:id="@+id/tvHealthStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Observações"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="12dp"
+                    android:text="Aguardando análise"
+                    android:textColor="@color/green_dark"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
 
-
-
+                <TextView
+                    android:id="@+id/tvHealthScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Pontuação: 0/100" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            app:cardCornerRadius="22dp">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Detalhes da leitura" android:textColor="@color/green_dark" android:textSize="20sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvHeight" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:text="Altura estimada: 0,0 cm" />
+                <TextView android:id="@+id/tvNotes" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Sem observações" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Tópico recebido" android:textStyle="bold" />
+                <TextView android:id="@+id/tvSourceTopic" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Aguardando tópico MQTT" android:textIsSelectable="true" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="Payload bruto" android:textStyle="bold" />
+                <TextView android:id="@+id/tvRawPayload" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Nenhuma mensagem recebida" android:textIsSelectable="true" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReturn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Voltar"
             android:layout_marginTop="16dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:backgroundTint="@color/green_soft"/>
-
+            android:text="Voltar"
+            app:backgroundTint="@color/green_soft" />
     </LinearLayout>
-
 </ScrollView>

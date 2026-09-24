@@ -1,6 +1,8 @@
 package com.github.carlosliszt.plantsiot.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -22,6 +24,11 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
     private lateinit var binding: ActivityDashboardBinding
     private lateinit var mqttManager: MqttManager
 
+    private val preferences: SharedPreferences
+        get() {
+            return getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
@@ -30,7 +37,6 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
         ReadingStore(this).latest()?.let(::renderReading)
 
-        val preferences = getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
         val topic = preferences.getString("mqtt_topic", "#") ?: "#"
         mqttManager = MqttManager(this, this)
         mqttManager.connectAndSubscribe(topic)
@@ -57,7 +63,9 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     override fun onReading(reading: PlantReading) = renderReading(reading)
 
+    @SuppressLint("SetTextI18n")
     private fun renderReading(reading: PlantReading) = with(binding) {
+        dashboardText.text = "Dashboard - ${preferences.getString("plant_name", "Desconhecida")} (${preferences.getString("plant_species", "Desconhecida")})"
         tvTemperature.text = "${format(reading.temperatureC)} °C"
         tvAirHumidity.text = "${format(reading.airHumidity)} %"
         tvSoilMoisture.text = "${format(reading.soilMoisture)} %"

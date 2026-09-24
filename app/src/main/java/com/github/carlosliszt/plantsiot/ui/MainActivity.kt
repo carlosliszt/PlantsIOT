@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ChartsActivity::class.java))
         }
 
-        binding.cardSettings.setOnClickListener {
+        binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
     }

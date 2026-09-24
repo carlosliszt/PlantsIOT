@@ -6,17 +6,25 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
+    private val firebaseRepository = FirebaseRepository()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         applySystemInsets()
+
+        if (firebaseRepository.currentUser() != null) {
+            openMainScreen()
+            return
+        }
 
         binding.btnLogin.setOnClickListener {
             val email = binding.etEmail.text.toString().trim()
@@ -27,16 +35,26 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val name = email.substringBefore('@').ifBlank { "Cuidador" }
-            getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
-                .edit().putString("user_name", name).apply()
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            binding.btnLogin.isEnabled = false
+            firebaseRepository.login(email, password) { success, error ->
+                binding.btnLogin.isEnabled = true
+                if (!success) {
+                    Toast.makeText(this, error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
+                    return@login
+                }
+
+                openMainScreen()
+            }
         }
 
         binding.tvRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+    }
+
+    private fun openMainScreen() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     private fun applySystemInsets() {

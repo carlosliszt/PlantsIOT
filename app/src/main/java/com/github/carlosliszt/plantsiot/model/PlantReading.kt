@@ -18,4 +18,24 @@ data class PlantReading(
     val notes: String = "",
     val sourceTopic: String = "",
     val rawPayload: String = ""
-)
+) {
+    fun toFirebaseMap(): Map<String, Any> = mapOf(
+        "timestamp" to timestamp,
+        "temperatureC" to temperatureC,
+        "airHumidity" to airHumidity,
+        "soilMoisture" to soilMoisture,
+        "luminosity" to luminosity,
+        "ph" to ph,
+        "red" to red,
+        "green" to green,
+        "blue" to blue,
+        "heightCm" to heightCm,
+        "healthScore" to healthScore,
+        "healthStatus" to healthStatus,
+        "greenIndex" to greenIndex,
+        "yellowIndex" to yellowIndex,
+        "notes" to notes,
+        "sourceTopic" to sourceTopic,
+        "rawPayload" to rawPayload
+    )
+}

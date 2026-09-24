@@ -2,7 +2,6 @@ package com.github.carlosliszt.plantsiot.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -11,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.R
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityDashboardBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
@@ -23,11 +23,11 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     private lateinit var binding: ActivityDashboardBinding
     private lateinit var mqttManager: MqttManager
+    private val firebaseRepository = FirebaseRepository()
 
-    private val preferences: SharedPreferences
-        get() {
-            return getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
-        }
+    private var currentPlantName: String = "Planta"
+    private var currentPlantSpecies: String = "Desconhecida"
+    private var currentTopic: String = "#"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,9 +37,16 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
         ReadingStore(this).latest()?.let(::renderReading)
 
-        val topic = preferences.getString("mqtt_topic", "#") ?: "#"
-        mqttManager = MqttManager(this, this)
-        mqttManager.connectAndSubscribe(topic)
+        firebaseRepository.loadPlant { plant, error ->
+            if (error == null && plant != null) {
+                currentPlantName = plant["name"] as? String ?: currentPlantName
+                currentPlantSpecies = plant["species"] as? String ?: currentPlantSpecies
+                currentTopic = plant["topic"] as? String ?: currentTopic
+                renderHeader()
+            }
+            mqttManager = MqttManager(this, this)
+            mqttManager.connectAndSubscribe(currentTopic)
+        }
 
         binding.btnReturn.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
@@ -65,7 +72,7 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     @SuppressLint("SetTextI18n")
     private fun renderReading(reading: PlantReading) = with(binding) {
-        dashboardText.text = "Dashboard - ${preferences.getString("plant_name", "Desconhecida")} (${preferences.getString("plant_species", "Desconhecida")})"
+        renderHeader()
         tvTemperature.text = "${format(reading.temperatureC)} °C"
         tvAirHumidity.text = "${format(reading.airHumidity)} %"
         tvSoilMoisture.text = "${format(reading.soilMoisture)} %"
@@ -92,6 +99,10 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
             setColor(Color.rgb(reading.red, reading.green, reading.blue))
             setStroke(2, ContextCompat.getColor(this@DashboardActivity, R.color.green_dark))
         }
+    }
+
+    private fun renderHeader() {
+        binding.dashboardText.text = "Dashboard - $currentPlantName ($currentPlantSpecies)"
     }
 
     private fun format(value: Double): String =

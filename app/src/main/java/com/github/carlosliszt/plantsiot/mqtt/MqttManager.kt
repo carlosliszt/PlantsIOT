@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.github.carlosliszt.plantsiot.BuildConfig
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
@@ -39,6 +40,7 @@ class MqttManager(
     private val networkExecutor = Executors.newSingleThreadExecutor()
     private val saveExecutor = Executors.newSingleThreadScheduledExecutor()
     private val readingStore = ReadingStore(context)
+    private val firebaseRepository = FirebaseRepository()
     private val clientId = "PlantsIOT_" + UUID.randomUUID().toString().take(12)
 
     @Volatile
@@ -272,6 +274,7 @@ class MqttManager(
         pendingSave?.cancel(false)
         pendingSave = saveExecutor.schedule({
             readingStore.save(reading)
+            firebaseRepository.saveReading(reading)
             lastSavedTimestamp = reading.timestamp
         }, 900, TimeUnit.MILLISECONDS)
     }
@@ -292,6 +295,7 @@ class MqttManager(
     fun disconnect() {
         if (latestReading.timestamp > lastSavedTimestamp) {
             readingStore.save(latestReading)
+            firebaseRepository.saveReading(latestReading)
             lastSavedTimestamp = latestReading.timestamp
         }
         pendingSave?.cancel(false)

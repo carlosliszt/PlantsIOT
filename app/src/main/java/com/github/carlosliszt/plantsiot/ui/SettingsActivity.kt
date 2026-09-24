@@ -6,11 +6,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
+    private val firebaseRepository = FirebaseRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,10 +20,18 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemInsets()
 
-        val preferences = getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
-        binding.etPlantName.setText(preferences.getString("plant_name", "Planta 01"))
-        binding.etPlantSpecies.setText(preferences.getString("plant_species", ""))
-        binding.etTopic.setText(preferences.getString("mqtt_topic", "#"))
+        firebaseRepository.loadPlant { plant, error ->
+            if (error != null || plant == null) {
+                binding.etPlantName.setText("Planta 01")
+                binding.etPlantSpecies.setText("")
+                binding.etTopic.setText("#")
+                return@loadPlant
+            }
+
+            binding.etPlantName.setText(plant["name"] as? String ?: "Planta 01")
+            binding.etPlantSpecies.setText(plant["species"] as? String ?: "")
+            binding.etTopic.setText(plant["topic"] as? String ?: "#")
+        }
 
         binding.btnSave.setOnClickListener {
             val plantName = binding.etPlantName.text.toString().trim()
@@ -33,11 +43,7 @@ class SettingsActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            preferences.edit()
-                .putString("plant_name", plantName)
-                .putString("plant_species", species)
-                .putString("mqtt_topic", topic)
-                .apply()
+            firebaseRepository.saveSettings(plantName, species, topic)
             Toast.makeText(this, "Configurações salvas", Toast.LENGTH_SHORT).show()
         }
 
@@ -47,6 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnLogout.setOnClickListener {
+            firebaseRepository.logout()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }

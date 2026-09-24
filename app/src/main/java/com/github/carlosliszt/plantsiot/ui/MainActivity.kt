@@ -5,11 +5,15 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
+import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val firebaseRepository = FirebaseRepository()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -18,12 +22,30 @@ class MainActivity : AppCompatActivity() {
 
         applySystemInsets()
 
-        val name = getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
-            .getString("user_name", "Cuidador") ?: "Cuidador"
-        binding.tvWelcome.text = "Olá, $name"
+        val user = firebaseRepository.currentUser()
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
 
-        binding.cardDashboard.setOnClickListener {
-            startActivity(Intent(this, DashboardActivity::class.java))
+        val uid = firebaseRepository.currentUser()!!.uid
+        FirebaseDatabase.getInstance().reference.child("users").child(uid).child("name").get()
+            .addOnSuccessListener {
+                val name = it.getValue(String::class.java) ?: "Usuário"
+                binding.tvWelcome.text = "Olá, $name"
+            }
+
+        firebaseRepository.hasPlant { hasPlant, error ->
+            if (error != null || !hasPlant) {
+                startActivity(Intent(this, PlantRegistrationActivity::class.java))
+                finish()
+                return@hasPlant
+            }
+
+            binding.cardDashboard.setOnClickListener {
+                startActivity(Intent(this, DashboardActivity::class.java))
+            }
         }
 
         binding.cardHistory.setOnClickListener {

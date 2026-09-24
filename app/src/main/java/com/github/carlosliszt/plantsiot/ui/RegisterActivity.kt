@@ -6,11 +6,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
+    private val firebaseRepository = FirebaseRepository()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
@@ -28,13 +31,17 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            getSharedPreferences("plants_iot_settings", MODE_PRIVATE)
-                .edit()
-                .putString("user_name", name)
-                .putString("user_email", email)
-                .apply()
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            binding.btnRegister.isEnabled = false
+            firebaseRepository.register(name, email, password) { success, error ->
+                binding.btnRegister.isEnabled = true
+                if (!success) {
+                    Toast.makeText(this, error ?: "Não foi possível criar a conta.", Toast.LENGTH_LONG).show()
+                    return@register
+                }
+
+                startActivity(Intent(this, PlantRegistrationActivity::class.java))
+                finish()
+            }
         }
         binding.tvLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))

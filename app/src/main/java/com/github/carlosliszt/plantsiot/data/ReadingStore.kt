@@ -12,11 +12,25 @@ class ReadingStore(context: Context) {
     @Synchronized
     fun save(reading: PlantReading) {
         val items = getAll().toMutableList()
+        items.removeAll { it.timestamp == reading.timestamp && it.sourceTopic == reading.sourceTopic }
         items.add(reading)
-        val trimmed = items.takeLast(MAX_READINGS)
+        replaceAll(items)
+    }
+
+    @Synchronized
+    fun replaceAll(readings: List<PlantReading>) {
+        val unique = readings
+            .distinctBy { it.timestamp to it.sourceTopic to it.rawPayload }
+            .sortedBy { it.timestamp }
+            .takeLast(MAX_READINGS)
         val array = JSONArray()
-        trimmed.forEach { array.put(it.toJson()) }
+        unique.forEach { array.put(it.toJson()) }
         preferences.edit().putString(KEY_READINGS, array.toString()).apply()
+    }
+
+    @Synchronized
+    fun clear() {
+        preferences.edit().remove(KEY_READINGS).apply()
     }
 
     @Synchronized

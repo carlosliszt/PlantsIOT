@@ -85,11 +85,13 @@ class MqttManager(
                     override fun messageArrived(topic: String?, message: MqttMessage?) {
                         val sourceTopic = topic ?: return
                         val payload = message?.payload?.toString(Charsets.UTF_8) ?: return
-                        parseReading(sourceTopic, payload)?.let { reading ->
+                        parseReading(sourceTopic, payload)
+                            ?.takeUnless { it.healthStatus.isOfflineStatus() }
+                            ?.let { reading ->
                             latestReading = reading
                             mainHandler.post { listener.onReading(reading) }
                             scheduleSave(reading)
-                        }
+                            }
                     }
 
                     override fun deliveryComplete(token: IMqttDeliveryToken?) = Unit
@@ -127,6 +129,7 @@ class MqttManager(
         val json = runCatching {
             if (cleanPayload.startsWith("{")) JSONObject(cleanPayload) else null
         }.getOrNull()
+        if (json != null && json.containsOfflineSignal()) return null
 
         var rgbChanged = false
         var explicitHealth: String? = null
@@ -235,8 +238,9 @@ class MqttManager(
             }
         }
 
-        if (!explicitHealth.isNullOrBlank()) {
-            reading = reading.copy(healthStatus = explicitHealth!!)
+        val normalizedHealth = explicitHealth?.trim()
+        if (!normalizedHealth.isNullOrBlank()) {
+            reading = reading.copy(healthStatus = normalizedHealth)
         } else if (rgbChanged) {
             reading = reading.copy(healthStatus = deriveHealth(reading.red, reading.green, reading.blue))
         }
@@ -270,7 +274,7 @@ class MqttManager(
 
     @Synchronized
     private fun scheduleSave(reading: PlantReading) {
-        if (saveExecutor.isShutdown) return
+        if (saveExecutor.isShutdown || reading.healthStatus.isOfflineStatus()) return
         pendingSave?.cancel(false)
         pendingSave = saveExecutor.schedule({
             readingStore.save(reading)
@@ -293,7 +297,10 @@ class MqttManager(
     }
 
     fun disconnect() {
-        if (latestReading.timestamp > lastSavedTimestamp) {
+        if (
+            latestReading.timestamp > lastSavedTimestamp &&
+            !latestReading.healthStatus.isOfflineStatus()
+        ) {
             readingStore.save(latestReading)
             firebaseRepository.saveReading(latestReading)
             lastSavedTimestamp = latestReading.timestamp
@@ -307,6 +314,15 @@ class MqttManager(
             }.onFailure { Log.e(TAG, "Erro ao desconectar", it) }
             networkExecutor.shutdown()
         }
+    }
+
+    private fun String.isOfflineStatus(): Boolean =
+        trim().equals("offline", ignoreCase = true)
+
+    private fun JSONObject.containsOfflineSignal(): Boolean {
+        if (has("online") && opt("online") == false) return true
+        val data = optJSONObject("data")
+        return data != null && data.has("online") && data.opt("online") == false
     }
 
     private fun JSONObject.firstDouble(vararg keys: String): Double? {

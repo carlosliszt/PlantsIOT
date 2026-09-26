@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
@@ -53,6 +54,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnLogout.setOnClickListener {
+            ReadingStore(this).clear()
             firebaseRepository.logout()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()

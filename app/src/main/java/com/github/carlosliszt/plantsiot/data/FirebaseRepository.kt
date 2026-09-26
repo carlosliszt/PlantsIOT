@@ -5,6 +5,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 
 class FirebaseRepository {
+
+    fun bindPlantImageAccount() {
+        PlantImageCache.bindAccount(currentUser()?.uid)
+    }
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database = FirebaseDatabase.getInstance().reference
 
@@ -149,8 +153,51 @@ class FirebaseRepository {
             .setValue(reading.toFirebaseMap())
     }
 
+    fun loadReadings(plantId: String = DEFAULT_PLANT_ID, onResult: (List<PlantReading>, String?) -> Unit) {
+        val uid = auth.currentUser?.uid ?: run {
+            onResult(emptyList(), "Usuário não autenticado.")
+            return
+        }
+
+        database.child("plants").child(uid).child(plantId).child("readings")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val readings = snapshot.children.mapNotNull { child ->
+                    (child.value as? Map<*, *>)?.toPlantReading()
+                }
+                onResult(readings.sortedBy { it.timestamp }, null)
+            }
+            .addOnFailureListener { error ->
+                onResult(emptyList(), error.message ?: "Falha ao carregar leituras.")
+            }
+    }
+
     fun logout() {
         auth.signOut()
+        PlantImageCache.bindAccount(null)
+    }
+
+    private fun Map<*, *>.toPlantReading(): PlantReading? {
+        val timestamp = (this["timestamp"] as? Number)?.toLong() ?: return null
+        return PlantReading(
+            timestamp = timestamp,
+            temperatureC = (this["temperatureC"] as? Number)?.toDouble() ?: 0.0,
+            airHumidity = (this["airHumidity"] as? Number)?.toDouble() ?: 0.0,
+            soilMoisture = (this["soilMoisture"] as? Number)?.toDouble() ?: 0.0,
+            luminosity = (this["luminosity"] as? Number)?.toDouble() ?: 0.0,
+            ph = (this["ph"] as? Number)?.toDouble() ?: 0.0,
+            red = (this["red"] as? Number)?.toInt() ?: 0,
+            green = (this["green"] as? Number)?.toInt() ?: 0,
+            blue = (this["blue"] as? Number)?.toInt() ?: 0,
+            heightCm = (this["heightCm"] as? Number)?.toDouble() ?: 0.0,
+            healthScore = (this["healthScore"] as? Number)?.toInt() ?: 0,
+            healthStatus = this["healthStatus"] as? String ?: "",
+            greenIndex = (this["greenIndex"] as? Number)?.toDouble() ?: 0.0,
+            yellowIndex = (this["yellowIndex"] as? Number)?.toDouble() ?: 0.0,
+            notes = this["notes"] as? String ?: "",
+            sourceTopic = this["sourceTopic"] as? String ?: "",
+            rawPayload = this["rawPayload"] as? String ?: ""
+        )
     }
 
     companion object {

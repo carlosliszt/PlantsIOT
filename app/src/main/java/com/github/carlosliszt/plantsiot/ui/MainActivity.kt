@@ -2,17 +2,23 @@ package com.github.carlosliszt.plantsiot.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.PlantImageLoader
+import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
 import com.google.firebase.database.FirebaseDatabase
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val firebaseRepository = FirebaseRepository()
+    private val imageExecutor = Executors.newSingleThreadExecutor()
+    private val plantImageLoader = PlantImageLoader(imageExecutor)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         applySystemInsets()
+
+        firebaseRepository.bindPlantImageAccount()
 
         val user = firebaseRepository.currentUser()
         if (user == null) {
@@ -43,8 +51,17 @@ class MainActivity : AppCompatActivity() {
                 return@hasPlant
             }
 
+            firebaseRepository.loadReadings { readings, _ ->
+                if (readings.isNotEmpty()) {
+                    ReadingStore(this).replaceAll(readings)
+                }
+            }
+
             binding.cardDashboard.setOnClickListener {
                 startActivity(Intent(this, DashboardActivity::class.java))
+            }
+            firebaseRepository.loadPlant { plant, _ ->
+                loadPlantImage(plant?.get("species") as? String)
             }
         }
 
@@ -58,6 +75,18 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
+        }
+    }
+
+    private fun loadPlantImage(scientificName: String?) {
+        if (scientificName.isNullOrBlank()) return
+
+        plantImageLoader.load(scientificName) { bitmap ->
+            runOnUiThread {
+                if (isFinishing || isDestroyed || bitmap == null) return@runOnUiThread
+                binding.ivPlantImage.setImageBitmap(bitmap)
+                binding.ivPlantImage.visibility = View.VISIBLE
+            }
         }
     }
 
@@ -77,6 +106,11 @@ class MainActivity : AppCompatActivity() {
             insets }
 
         ViewCompat.requestApplyInsets(root)
+    }
+
+    override fun onDestroy() {
+        imageExecutor.shutdownNow()
+        super.onDestroy()
     }
 
 }

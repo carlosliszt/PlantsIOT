@@ -25,6 +25,12 @@
         <activity
             android:name=".ui.DashboardActivity"/>
         <activity
+            android:name=".ui.SensorsDetailsActivity"/>
+        <activity
+            android:name=".ui.HealthDetailsActivity"/>
+        <activity
+            android:name=".ui.ReadingDetailsActivity"/>
+        <activity
             android:name=".ui.RegisterActivity"/>
         <activity
             android:name=".ui.PlantRegistrationActivity"/>

@@ -52,7 +52,7 @@ class ChartsActivity : AppCompatActivity() {
 
     private fun loadCharts() {
         readings.clear()
-        readings.addAll(ReadingStore(this).getAll().sortedBy { it.timestamp })
+        readings.addAll(ReadingStore(this).getAll().sortedBy { it.timestamp }.takeLast(10))
         drawLineChart()
         drawPieChart()
     }

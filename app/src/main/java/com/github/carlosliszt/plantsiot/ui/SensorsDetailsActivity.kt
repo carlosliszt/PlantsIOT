@@ -13,6 +13,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import java.util.Locale
 
+//TODO implementar melhorias de UI.
 class SensorsDetailsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySensorsDetailsBinding
     private val readings = mutableListOf<PlantReading>()
@@ -32,7 +33,7 @@ class SensorsDetailsActivity : AppCompatActivity() {
 
     private fun loadCharts() {
         readings.clear()
-        readings.addAll(ReadingStore(this).getAll().sortedBy { it.timestamp })
+        readings.addAll(ReadingStore(this).getAll().sortedBy { it.timestamp}.takeLast(10))
         drawLineChart()
     }
 

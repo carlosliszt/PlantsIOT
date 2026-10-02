@@ -14,6 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.Locale
 import java.util.UUID
@@ -317,12 +318,25 @@ class MqttManager(
     }
 
     private fun String.isOfflineStatus(): Boolean =
-        trim().equals("offline", ignoreCase = true)
+        trim().equals("offline", ignoreCase = true) || trim().equals("online", ignoreCase = true)
 
     private fun JSONObject.containsOfflineSignal(): Boolean {
         if (has("online") && opt("online") == false) return true
+
+        //pode ser plaintext, como observado :/
+        val textMessage = optString("message", optString("status", optString("payload", "")))
+        if (textMessage.equals("offline", ignoreCase = true)) return true
+        if (textMessage.equals("online", ignoreCase = true)) return false
+
         val data = optJSONObject("data")
-        return data != null && data.has("online") && data.opt("online") == false
+        if (data != null) {
+            if (data.has("online") && data.opt("online") == false) return true
+
+            val dataTextMessage = data.optString("message", data.optString("status", ""))
+            if (dataTextMessage.equals("offline", ignoreCase = true)) return true
+        }
+
+        return false
     }
 
     private fun JSONObject.firstDouble(vararg keys: String): Double? {

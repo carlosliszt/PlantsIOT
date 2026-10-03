@@ -146,6 +146,48 @@ class FirebaseRepository {
         savePlant(plantName, plantSpecies, topic, plantId)
     }
 
+    fun savePlantImageBase64(
+        imageBase64: String,
+        plantId: String = DEFAULT_PLANT_ID,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val uid = auth.currentUser?.uid ?: run {
+            onComplete(false, "Usuário não autenticado.")
+            return
+        }
+        database.child("plants").child(uid).child(plantId).child("imageUrl")
+            .removeValue()
+        database.child("plants").child(uid).child(plantId).child("imageBase64")
+            .setValue(imageBase64)
+            .addOnCompleteListener { task ->
+                onComplete(
+                    task.isSuccessful,
+                    if (task.isSuccessful) null else task.exception?.message
+                )
+            }
+    }
+
+    fun removePlantImage(
+        plantId: String = DEFAULT_PLANT_ID,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        val uid = auth.currentUser?.uid ?: run {
+            onComplete(false, "Usuário não autenticado.")
+            return
+        }
+        val updates: Map<String, Any?> = mapOf(
+            "plants/$uid/$plantId/imageBase64" to null,
+            "plants/$uid/$plantId/imageUrl" to null
+        )
+        database.updateChildren(updates)
+            .addOnCompleteListener { task ->
+                onComplete(
+                    task.isSuccessful,
+                    if (task.isSuccessful) null else task.exception?.message
+                )
+            }
+    }
+
     fun saveReading(reading: PlantReading, plantId: String = DEFAULT_PLANT_ID) {
         val uid = auth.currentUser?.uid ?: return
         val key = (reading.timestamp.takeIf { it > 0 } ?: System.currentTimeMillis()).toString()

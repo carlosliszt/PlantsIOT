@@ -2,8 +2,12 @@ package com.github.carlosliszt.plantsiot.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.os.Bundle
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -19,6 +23,8 @@ import java.util.concurrent.Executors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.io.ByteArrayOutputStream
+import android.util.Base64
 
 class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
@@ -27,6 +33,12 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
     private val firebaseRepository = FirebaseRepository()
     private val imageExecutor = Executors.newSingleThreadExecutor()
     private val plantImageLoader = PlantImageLoader(imageExecutor)
+    private val choosePhoto = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri -> uri?.let(::uploadPlantImage) }
+    private val takePhoto = registerForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap -> bitmap?.let(::uploadPlantImage) }
 
     private var currentPlantName: String = "Planta"
     private var currentPlantSpecies: String = "Desconhecida"
@@ -45,7 +57,11 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
                 currentPlantSpecies = plant["species"] as? String ?: currentPlantSpecies
                 currentTopic = plant["topic"] as? String ?: currentTopic
                 renderHeader()
-                loadPlantImage(currentPlantSpecies)
+                loadPlantImage(
+                    plant["imageBase64"] as? String,
+                    plant["imageUrl"] as? String,
+                    currentPlantSpecies
+                )
             }
             mqttManager = MqttManager(this, this)
             mqttManager.connectAndSubscribe(currentTopic)
@@ -55,6 +71,9 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+        binding.btnTakePlantPhoto.setOnClickListener { takePhoto.launch(null) }
+        binding.btnChoosePlantPhoto.setOnClickListener { choosePhoto.launch("image/*") }
+        binding.btnRemovePlantPhoto.setOnClickListener { removePlantPhoto() }
 
         binding.cardSensors.setOnClickListener {
             startActivity(Intent(this, SensorsDetailsActivity::class.java))
@@ -120,11 +139,99 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         binding.ivPlantHealth.setColorFilter(iconColor)
     }
 
-    private fun loadPlantImage(scientificName: String) {
-        plantImageLoader.load(scientificName) { bitmap ->
+    private fun loadPlantImage(imageBase64: String?, imageUrl: String?, scientificName: String) {
+        val onBitmap: (Bitmap?) -> Unit = { bitmap ->
             runOnUiThread {
                 if (isFinishing || isDestroyed || bitmap == null) return@runOnUiThread
                 binding.ivPlantImage.setImageBitmap(bitmap)
+            }
+        }
+        if (!imageBase64.isNullOrBlank()) {
+            plantImageLoader.loadBase64(imageBase64, onBitmap)
+        } else if (imageUrl.isNullOrBlank()) {
+            plantImageLoader.load(scientificName, onBitmap)
+        } else {
+            plantImageLoader.loadUrl(imageUrl, onBitmap)
+        }
+    }
+
+    private fun uploadPlantImage(uri: android.net.Uri) {
+        binding.ivPlantImage.setImageURI(uri)
+        imageExecutor.execute {
+            val bitmap = contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
+            if (bitmap == null) {
+                runOnUiThread {
+                    Toast.makeText(this, "Não foi possível ler a foto.", Toast.LENGTH_LONG).show()
+                }
+                return@execute
+            }
+            savePlantBitmap(bitmap)
+        }
+    }
+
+    private fun uploadPlantImage(bitmap: Bitmap) {
+        savePlantBitmap(bitmap)
+    }
+
+    private fun removePlantPhoto() {
+        binding.btnRemovePlantPhoto.isEnabled = false
+        firebaseRepository.removePlantImage { success, error ->
+            runOnUiThread {
+                binding.btnRemovePlantPhoto.isEnabled = true
+                if (!success) {
+                    Toast.makeText(
+                        this,
+                        error ?: "Não foi possível remover a foto.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@runOnUiThread
+                }
+
+                binding.ivPlantImage.setImageDrawable(null)
+                loadPlantImage(null, null, currentPlantSpecies)
+                Toast.makeText(
+                    this,
+                    "Foto removida. Imagem da API restaurada.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun savePlantBitmap(bitmap: Bitmap) {
+        val output = ByteArrayOutputStream()
+        val maxDimension = 1280
+        val scale = minOf(
+            1f,
+            maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
+        )
+        val compressedBitmap = if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).toInt(),
+                (bitmap.height * scale).toInt(),
+                true
+            )
+        } else {
+            bitmap
+        }
+        if (!compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)) {
+            if (compressedBitmap !== bitmap) compressedBitmap.recycle()
+            runOnUiThread {
+                Toast.makeText(this, "Não foi possível preparar a foto.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        if (compressedBitmap !== bitmap) compressedBitmap.recycle()
+        val imageBase64 = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+        firebaseRepository.savePlantImageBase64(imageBase64) { success, error ->
+            runOnUiThread {
+                if (success) {
+                    binding.ivPlantImage.setImageBitmap(bitmap)
+                    Toast.makeText(this, "Foto da planta salva", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, error ?: "Não foi possível salvar a foto.", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }

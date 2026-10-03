@@ -14,13 +14,26 @@
         android:padding="16dp"
         android:background="@android:color/white">
 
-        <TextView
-            android:id="@+id/tvStatus"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:textColor="@color/green_dark"/>
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <ImageView
+                android:id="@+id/ivStatus"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="Ícone do estado da planta"
+                android:src="@drawable/potted_plant_24px" />
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/green_dark"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvHeight"

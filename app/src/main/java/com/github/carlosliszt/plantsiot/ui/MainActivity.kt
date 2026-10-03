@@ -56,12 +56,15 @@ class MainActivity : AppCompatActivity() {
                     ReadingStore(this).replaceAll(readings)
                 }
             }
-
             binding.cardDashboard.setOnClickListener {
                 startActivity(Intent(this, DashboardActivity::class.java))
             }
             firebaseRepository.loadPlant { plant, _ ->
-                loadPlantImage(plant?.get("species") as? String)
+                loadPlantImage(
+                    plant?.get("imageBase64") as? String,
+                    plant?.get("imageUrl") as? String,
+                    plant?.get("species") as? String
+                )
             }
         }
 
@@ -78,15 +81,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadPlantImage(scientificName: String?) {
+    private fun loadPlantImage(
+        imageBase64: String?,
+        imageUrl: String?,
+        scientificName: String?
+    ) {
         if (scientificName.isNullOrBlank()) return
 
-        plantImageLoader.load(scientificName) { bitmap ->
+        val onBitmap = { bitmap: android.graphics.Bitmap? ->
             runOnUiThread {
                 if (isFinishing || isDestroyed || bitmap == null) return@runOnUiThread
                 binding.ivPlantImage.setImageBitmap(bitmap)
                 binding.ivPlantImage.visibility = View.VISIBLE
             }
+        }
+        when {
+            !imageBase64.isNullOrBlank() -> plantImageLoader.loadBase64(imageBase64, onBitmap)
+            !imageUrl.isNullOrBlank() -> plantImageLoader.loadUrl(imageUrl, onBitmap)
+            else -> plantImageLoader.load(scientificName, onBitmap)
         }
     }
 

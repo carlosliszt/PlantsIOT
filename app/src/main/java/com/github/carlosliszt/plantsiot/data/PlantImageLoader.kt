@@ -2,6 +2,7 @@ package com.github.carlosliszt.plantsiot.data
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Base64
 import com.github.carlosliszt.plantsiot.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 import org.json.JSONObject
@@ -12,6 +13,31 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 
 class PlantImageLoader(private val executor: ExecutorService) {
+
+    fun loadBase64(imageBase64: String, onResult: (Bitmap?) -> Unit) {
+        executor.execute {
+            val bitmap = try {
+                val bytes = Base64.decode(imageBase64, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+            onResult(bitmap)
+        }
+    }
+
+    fun loadUrl(imageUrl: String, onResult: (Bitmap?) -> Unit) {
+        executor.execute {
+            val bitmap = try {
+                downloadBitmap(imageUrl)
+            } catch (_: java.io.IOException) {
+                null
+            } catch (_: IllegalArgumentException) {
+                null
+            }
+            onResult(bitmap)
+        }
+    }
 
     fun load(scientificName: String, onResult: (Bitmap?) -> Unit) {
         val normalizedName = normalize(scientificName)

@@ -31,20 +31,79 @@
             android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
+            android:layout_gravity="center"
             app:cardCornerRadius="20dp">
 
             <ImageView
                 android:id="@+id/ivPlantImage"
-                android:layout_width="match_parent"
-                android:layout_height="140dp"
-                android:background="@drawable/plant_image_rounded"
-                android:clipToOutline="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
                 android:contentDescription="Imagem da planta"
-                android:scaleType="centerCrop" />
+                android:padding="0dp"
+
+                android:scaleType="fitCenter" />
         </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTakePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Tirar foto"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Câmera"
+                android:textColor="@color/green_dark"
+                android:tooltipText="Tirar foto"
+                app:icon="@drawable/ic_camera"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChoosePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Escolher foto do dispositivo"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Galeria"
+                android:textColor="@color/green_dark"
+                android:tooltipText="Escolher do dispositivo"
+                app:icon="@drawable/ic_gallery"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRemovePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Remover foto"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Remover"
+                android:textColor="@color/danger"
+                android:tooltipText="Remover foto"
+                app:icon="@drawable/ic_delete"
+                app:iconTint="@color/danger"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvLastUpdate"
@@ -65,13 +124,25 @@
                 style="@style/DashboardWidgetContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Sensores ambientais"
-                    android:textColor="@color/green_dark"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_sensors" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Sensores ambientais"
+                        android:textColor="@color/green_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
                 <TextView
                     android:id="@+id/tvSensorSummary"
                     android:layout_width="match_parent"
@@ -150,13 +221,25 @@
                 style="@style/DashboardWidgetContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Última leitura"
-                    android:textColor="@color/green_dark"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_reading" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Última leitura"
+                        android:textColor="@color/green_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
                 <TextView
                     android:id="@+id/tvReadingSummary"
                     android:layout_width="match_parent"

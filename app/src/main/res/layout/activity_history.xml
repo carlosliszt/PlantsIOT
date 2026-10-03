@@ -15,12 +15,40 @@
         android:textStyle="bold"
         android:textColor="@color/green_dark"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <Spinner
+            android:id="@+id/spinnerSort"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:dropDownVerticalOffset="4dp"
+            android:popupBackground="@drawable/bg_history_spinner_dropdown"
+            android:prompt="@string/history_sort_prompt"/>
+
+        <Spinner
+            android:id="@+id/spinnerStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@android:color/transparent"
+            android:dropDownVerticalOffset="4dp"
+            android:popupBackground="@drawable/bg_history_spinner_dropdown"
+            android:prompt="@string/history_status_prompt"/>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerReadings"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="8dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnReturn"

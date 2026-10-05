@@ -42,6 +42,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
+                android:minHeight="190dp"
+                android:minWidth="190dp"
                 android:contentDescription="Imagem da planta"
                 android:padding="0dp"
 
@@ -179,8 +181,8 @@
 
                     <ImageView
                         android:id="@+id/ivPlantHealth"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:contentDescription="Estado da saúde da planta"
                         android:src="@drawable/potted_plant_24px" />
 

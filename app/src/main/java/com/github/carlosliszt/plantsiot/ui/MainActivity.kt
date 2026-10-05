@@ -6,19 +6,14 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
-import com.github.carlosliszt.plantsiot.data.PlantImageLoader
-import com.github.carlosliszt.plantsiot.data.ReadingStore
+import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
-import com.google.firebase.database.FirebaseDatabase
-import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val firebaseRepository = FirebaseRepository()
-    private val imageExecutor = Executors.newSingleThreadExecutor()
-    private val plantImageLoader = PlantImageLoader(imageExecutor)
+    private val app: AppApplication
+        get() = application as AppApplication
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,43 +23,32 @@ class MainActivity : AppCompatActivity() {
 
         applySystemInsets()
 
-        firebaseRepository.bindPlantImageAccount()
-
-        val user = firebaseRepository.currentUser()
-        if (user == null) {
+        if (app.firebaseRepository.currentUser() == null) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-
-        val uid = firebaseRepository.currentUser()!!.uid
-        FirebaseDatabase.getInstance().reference.child("users").child(uid).child("name").get()
-            .addOnSuccessListener {
-                val name = it.getValue(String::class.java) ?: "Usuário"
-                binding.tvWelcome.text = "Olá, $name"
-            }
-
-        firebaseRepository.hasPlant { hasPlant, error ->
-            if (error != null || !hasPlant) {
-                startActivity(Intent(this, PlantRegistrationActivity::class.java))
-                finish()
-                return@hasPlant
-            }
-
-            firebaseRepository.loadReadings { readings, _ ->
-                if (readings.isNotEmpty()) {
-                    ReadingStore(this).replaceAll(readings)
+        app.initialize { success, error ->
+            runOnUiThread {
+                if (!success) {
+                    if (error == "Nenhuma planta cadastrada.") {
+                        startActivity(Intent(this, PlantRegistrationActivity::class.java))
+                    } else {
+                        startActivity(Intent(this, LoginActivity::class.java))
+                    }
+                    finish()
+                    return@runOnUiThread
                 }
-            }
-            binding.cardDashboard.setOnClickListener {
-                startActivity(Intent(this, DashboardActivity::class.java))
-            }
-            firebaseRepository.loadPlant { plant, _ ->
-                loadPlantImage(
-                    plant?.get("imageBase64") as? String,
-                    plant?.get("imageUrl") as? String,
-                    plant?.get("species") as? String
-                )
+                binding.tvWelcome.text = "Olá, ${app.userName}"
+                app.plantImage?.let {
+                    binding.ivPlantImage.setImageBitmap(it)
+                    binding.ivPlantImage.visibility = View.VISIBLE
+                }
+                binding.cardDashboard.setOnClickListener {
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                }
+                binding.cardDashboard.isEnabled = true
+                hideSplash()
             }
         }
 
@@ -81,25 +65,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadPlantImage(
-        imageBase64: String?,
-        imageUrl: String?,
-        scientificName: String?
-    ) {
-        if (scientificName.isNullOrBlank()) return
-
-        val onBitmap = { bitmap: android.graphics.Bitmap? ->
-            runOnUiThread {
-                if (isFinishing || isDestroyed || bitmap == null) return@runOnUiThread
-                binding.ivPlantImage.setImageBitmap(bitmap)
-                binding.ivPlantImage.visibility = View.VISIBLE
-            }
-        }
-        when {
-            !imageBase64.isNullOrBlank() -> plantImageLoader.loadBase64(imageBase64, onBitmap)
-            !imageUrl.isNullOrBlank() -> plantImageLoader.loadUrl(imageUrl, onBitmap)
-            else -> plantImageLoader.load(scientificName, onBitmap)
-        }
+    private fun hideSplash() {
+        binding.splashOverlay.animate()
+            .alpha(0f)
+            .setDuration(350)
+            .withEndAction { binding.splashOverlay.visibility = View.GONE }
+            .start()
     }
 
     private fun applySystemInsets() {
@@ -118,11 +89,6 @@ class MainActivity : AppCompatActivity() {
             insets }
 
         ViewCompat.requestApplyInsets(root)
-    }
-
-    override fun onDestroy() {
-        imageExecutor.shutdownNow()
-        super.onDestroy()
     }
 
 }

@@ -1,13 +1,18 @@
 package com.github.carlosliszt.plantsiot.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Toast
+import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityPlantRegistrationBinding
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.Executors
 
 class PlantRegistrationActivity : AppCompatActivity() {
 
@@ -18,6 +23,15 @@ class PlantRegistrationActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPlantRegistrationBinding
     private val firebaseRepository = FirebaseRepository()
+    private val imageExecutor = Executors.newSingleThreadExecutor()
+    private var selectedImageUri: android.net.Uri? = null
+    private val chooseImage = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        selectedImageUri = uri
+        binding.ivPlantPreview.visibility = if (uri == null) android.view.View.GONE else android.view.View.VISIBLE
+        binding.ivPlantPreview.setImageURI(uri)
+    }
     private val speciesCatalog = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -53,6 +67,7 @@ class PlantRegistrationActivity : AppCompatActivity() {
                     "Exemplo: plants/minha-planta."
             )
         }
+        binding.btnChoosePlantImage.setOnClickListener { chooseImage.launch("image/*") }
 
         binding.btnSavePlant.setOnClickListener {
             val plantName = binding.etPlantName.text.toString().trim()
@@ -72,10 +87,43 @@ class PlantRegistrationActivity : AppCompatActivity() {
                     return@savePlant
                 }
 
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+                saveSelectedImageAndOpenMain()
             }
         }
+    }
+
+    private fun saveSelectedImageAndOpenMain() {
+        val uri = selectedImageUri
+        if (uri == null) {
+            openMain()
+            return
+        }
+        imageExecutor.execute {
+            val bitmap = contentResolver.openInputStream(uri)?.use(BitmapFactory::decodeStream)
+            if (bitmap == null) {
+                runOnUiThread {
+                    Toast.makeText(this, "Planta salva, mas não foi possível ler a imagem.", Toast.LENGTH_LONG).show()
+                    openMain()
+                }
+                return@execute
+            }
+            val output = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)
+            val encoded = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+            firebaseRepository.savePlantImageBase64(encoded) { success, error ->
+                runOnUiThread {
+                    if (!success) {
+                        Toast.makeText(this, error ?: "Planta salva, mas a imagem não foi enviada.", Toast.LENGTH_LONG).show()
+                    }
+                    openMain()
+                }
+            }
+        }
+    }
+
+    private fun openMain() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     private fun showHelp(title: String, message: String) {
@@ -98,5 +146,10 @@ class PlantRegistrationActivity : AppCompatActivity() {
             insets
         }
         ViewCompat.requestApplyInsets(root)
+    }
+
+    override fun onDestroy() {
+        imageExecutor.shutdownNow()
+        super.onDestroy()
     }
 }

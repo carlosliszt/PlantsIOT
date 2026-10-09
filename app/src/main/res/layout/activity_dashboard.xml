@@ -50,6 +50,18 @@
                 android:scaleType="fitCenter" />
         </com.google.android.material.card.MaterialCardView>
 
+        <TextView
+            android:id="@+id/tvApiImageNotice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Imagem ilustrativa. Envie uma foto da sua própria planta para uma identificação visual mais fiel."
+            android:textColor="@color/text_dark"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

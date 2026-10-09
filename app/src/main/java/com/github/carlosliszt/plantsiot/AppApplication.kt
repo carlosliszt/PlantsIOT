@@ -7,6 +7,8 @@ import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.data.PlantImageLoader
 import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.Image
+import com.github.carlosliszt.plantsiot.model.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
@@ -18,6 +20,8 @@ class AppApplication : Application(), MqttManager.Listener {
     var plant: Map<String, Any> = emptyMap()
         private set
     var plantImage: Bitmap? = null
+        private set
+    var image: Image = Image()
         private set
     var userName: String = "Usuário"
         private set
@@ -86,6 +90,10 @@ class AppApplication : Application(), MqttManager.Listener {
         val species = plant["species"] as? String
         val complete: (Bitmap?) -> Unit = { bitmap ->
             plantImage = bitmap
+            image = Image(
+                url = if (bitmap == null) "" else "memory",
+                imageSource = if (!base64.isNullOrBlank()) ImageSource.USER else ImageSource.API
+            )
             mqttManager = MqttManager(this, this).also {
                 it.connectAndSubscribe(plant["topic"] as? String ?: "#")
             }
@@ -119,6 +127,10 @@ class AppApplication : Application(), MqttManager.Listener {
 
     fun updatePlantImage(bitmap: Bitmap?) {
         plantImage = bitmap
+        image = Image(
+            url = if (bitmap == null) "" else "memory",
+            imageSource = if (bitmap == null) ImageSource.API else ImageSource.USER
+        )
     }
 
     fun clearSession() {
@@ -130,6 +142,7 @@ class AppApplication : Application(), MqttManager.Listener {
         pendingCallbacks.clear()
         plant = emptyMap()
         plantImage = null
+        image = Image()
         userName = "Usuário"
         connectionState = MqttManager.ConnectionState.CONNECTING
         connectionMessage = "Conectando ao HiveMQ..."
@@ -149,6 +162,10 @@ class AppApplication : Application(), MqttManager.Listener {
             val species = loadedPlant["species"] as? String
             val complete: (Bitmap?) -> Unit = { bitmap ->
                 plantImage = bitmap
+                image = Image(
+                    url = if (bitmap == null) "" else (imageUrl ?: "api"),
+                    imageSource = ImageSource.API
+                )
                 onComplete(bitmap)
             }
             when {

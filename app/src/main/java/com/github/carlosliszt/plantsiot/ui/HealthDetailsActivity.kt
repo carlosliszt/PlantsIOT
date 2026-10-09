@@ -31,7 +31,7 @@ class HealthDetailsActivity : AppCompatActivity() {
         applySystemInsets()
         val reading = ReadingStore(this).latest()
         binding.tvHealthDetails.text = reading?.let {
-            "Status: ${it.healthStatus.ifBlank { "Aguardando análise" }}\nPontuação: ${it.healthScore}/100\n\nÍndices da análise\nVerde: ${it.greenIndex}\nAmarelo: ${it.yellowIndex}"
+            "Status: ${it.healthStatus.ifBlank { "Aguardando análise" }}\nPontuação: ${it.healthScore}/100\n\nÍndices da análise\nVerde: ${it.greenIndex * 100}%\nAmarelo: ${it.yellowIndex * 100}%"
         } ?: "Nenhuma leitura disponível."
         if (reading != null) {
             binding.tvRedValue.text = "Vermelho (R): ${reading.red}"

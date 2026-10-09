@@ -21,6 +21,7 @@ import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityDashboardBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
 import java.util.concurrent.Executors
 import java.text.SimpleDateFormat
@@ -77,6 +78,8 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         currentTopic = app.plant["topic"] as? String ?: currentTopic
         renderHeader()
         app.plantImage?.let(binding.ivPlantImage::setImageBitmap)
+        binding.tvApiImageNotice.visibility =
+            if (app.image.imageSource == ImageSource.API) android.view.View.VISIBLE else android.view.View.GONE
         ReadingStore(this).latest()?.let(::renderReading)
         app.addMqttListener(this)
         app.ensureMqttConnected()
@@ -219,7 +222,7 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
                         }
                         Toast.makeText(
                             this,
-                            "Foto removida. Imagem da API restaurada.",
+                            "Foto removida.",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

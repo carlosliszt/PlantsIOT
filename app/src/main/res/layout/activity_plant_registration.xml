@@ -94,6 +94,33 @@
                 android:tooltipText="O que é um tópico MQTT?" />
         </LinearLayout>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Imagem da planta (opcional)"
+            android:textColor="@color/green_dark"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/ivPlantPreview"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="8dp"
+            android:adjustViewBounds="true"
+            android:contentDescription="Prévia da imagem da planta"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnChoosePlantImage"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enviar imagem (opcional)"
+            android:textColor="@color/green_dark"
+            app:icon="@drawable/ic_gallery" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSavePlant"
             android:layout_width="match_parent"

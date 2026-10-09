@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">PlantsIOT</string>
     <string name="back">Voltar</string>
+    <string name="history_sort_prompt">Ordenar por</string>
+    <string name="history_status_prompt">Filtrar status</string>
     <string name="reading_height">Altura: %1$d cm</string>
     <string name="reading_score">Score: %1$d</string>
 </resources>

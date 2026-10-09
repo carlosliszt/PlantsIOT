@@ -2,43 +2,54 @@ package com.github.carlosliszt.plantsiot.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseDatabase.getInstance().reference
+    private val app: AppApplication
+        get() = application as AppApplication
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if (auth.currentUser == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-            return
-        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         applySystemInsets()
 
-        val uid = auth.currentUser!!.uid
-
-        db.child("users").child(uid).child("name").get()
-            .addOnSuccessListener {
-                val name = it.getValue(String::class.java) ?: "Usuário"
-                binding.tvWelcome.text = "Olá, $name"
+        if (app.firebaseRepository.currentUser() == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+        app.initialize { success, error ->
+            runOnUiThread {
+                if (!success) {
+                    if (error == "Nenhuma planta cadastrada.") {
+                        startActivity(Intent(this, PlantRegistrationActivity::class.java))
+                    } else {
+                        startActivity(Intent(this, LoginActivity::class.java))
+                    }
+                    finish()
+                    return@runOnUiThread
+                }
+                binding.tvWelcome.text = "Olá, ${app.userName}"
+                app.plantImage?.let {
+                    binding.ivPlantImage.setImageBitmap(it)
+                    binding.ivPlantImage.visibility = View.VISIBLE
+                }
+                binding.cardDashboard.setOnClickListener {
+                    startActivity(Intent(this, DashboardActivity::class.java))
+                }
+                binding.cardDashboard.isEnabled = true
+                hideSplash()
             }
-
-        binding.cardDashboard.setOnClickListener {
-            startActivity(Intent(this, DashboardActivity::class.java))
         }
 
         binding.cardHistory.setOnClickListener {
@@ -49,9 +60,17 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ChartsActivity::class.java))
         }
 
-        binding.cardSettings.setOnClickListener {
+        binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+    }
+
+    private fun hideSplash() {
+        binding.splashOverlay.animate()
+            .alpha(0f)
+            .setDuration(350)
+            .withEndAction { binding.splashOverlay.visibility = View.GONE }
+            .start()
     }
 
     private fun applySystemInsets() {

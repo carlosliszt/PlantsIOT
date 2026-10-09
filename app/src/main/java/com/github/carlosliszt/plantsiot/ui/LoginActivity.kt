@@ -6,13 +6,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityLoginBinding
-import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
+    private val firebaseRepository = FirebaseRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,11 +21,9 @@ class LoginActivity : AppCompatActivity() {
 
         applySystemInsets()
 
-        auth = FirebaseAuth.getInstance()
-
-        if (auth.currentUser != null) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+        if (firebaseRepository.currentUser() != null) {
+            openMainScreen()
+            return
         }
 
         binding.btnLogin.setOnClickListener {
@@ -37,19 +35,26 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+            binding.btnLogin.isEnabled = false
+            firebaseRepository.login(email, password) { success, error ->
+                binding.btnLogin.isEnabled = true
+                if (!success) {
+                    Toast.makeText(this, error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
+                    return@login
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Erro: ${it.message}", Toast.LENGTH_LONG).show()
-                }
+
+                openMainScreen()
+            }
         }
 
         binding.tvRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+    }
+
+    private fun openMainScreen() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
     }
 
     private fun applySystemInsets() {

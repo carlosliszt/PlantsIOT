@@ -27,4 +27,3 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
-

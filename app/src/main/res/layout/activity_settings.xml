@@ -37,7 +37,7 @@
             android:id="@+id/etTopic"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tópico MQTT"
+            android:hint="Tópico MQTT (# recebe todos)"
             android:layout_marginTop="12dp"/>
 
         <com.google.android.material.button.MaterialButton

@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="HelpIconButton" parent="@android:style/Widget.ImageButton">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:src">@drawable/ic_help</item>
+    </style>
+    <style name="SensorRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:background">@drawable/bg_sensor_item</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">2dp</item>
+    </style>
+    <style name="SensorIcon">
+        <item name="android:layout_width">32dp</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginEnd">10dp</item>
+    </style>
     <style name="DashboardWidget" parent="Widget.MaterialComponents.CardView">
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>

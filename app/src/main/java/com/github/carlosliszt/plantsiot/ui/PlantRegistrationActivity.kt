@@ -11,14 +11,48 @@ import com.github.carlosliszt.plantsiot.databinding.ActivityPlantRegistrationBin
 
 class PlantRegistrationActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_SPECIES = "extra_species"
+        const val EXTRA_SEARCH_QUERY = "extra_search_query"
+    }
+
     private lateinit var binding: ActivityPlantRegistrationBinding
     private val firebaseRepository = FirebaseRepository()
+    private val speciesCatalog = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data?.getStringExtra(EXTRA_SPECIES)?.let(binding.etPlantSpecies::setText)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPlantRegistrationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applySystemInsets()
+
+        binding.btnSpeciesHelp.setOnClickListener {
+            showHelp(
+                "Nome científico",
+                "Informe o nome científico da planta, por exemplo: Ocimum basilicum. " +
+                    "Ele é usado para buscar a imagem correta da planta."
+            )
+        }
+        binding.btnUnknownSpecies.setOnClickListener {
+            val query = binding.etPlantName.text.toString().trim()
+            speciesCatalog.launch(
+                Intent(this, SpeciesCatalogActivity::class.java)
+                    .putExtra(EXTRA_SEARCH_QUERY, query)
+            )
+        }
+        binding.btnTopicHelp.setOnClickListener {
+            showHelp(
+                "Tópico MQTT",
+                "Informe o tópico usado pelo seu dispositivo para publicar as leituras dos sensores. " +
+                    "Exemplo: plants/minha-planta."
+            )
+        }
 
         binding.btnSavePlant.setOnClickListener {
             val plantName = binding.etPlantName.text.toString().trim()
@@ -42,6 +76,14 @@ class PlantRegistrationActivity : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    private fun showHelp(title: String, message: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("Entendi", null)
+            .show()
     }
 
     private fun applySystemInsets() {

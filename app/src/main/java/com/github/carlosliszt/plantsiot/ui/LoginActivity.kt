@@ -4,24 +4,26 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityLoginBinding
-import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var auth: FirebaseAuth
+    private val firebaseRepository = FirebaseRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
+        applySystemInsets()
 
-        if (auth.currentUser != null) {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+        if (firebaseRepository.currentUser() != null) {
+            openMainScreen()
+            return
         }
 
         binding.btnLogin.setOnClickListener {
@@ -33,18 +35,44 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener {
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
+            binding.btnLogin.isEnabled = false
+            firebaseRepository.login(email, password) { success, error ->
+                binding.btnLogin.isEnabled = true
+                if (!success) {
+                    Toast.makeText(this, error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
+                    return@login
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Erro: ${it.message}", Toast.LENGTH_LONG).show()
-                }
+
+                openMainScreen()
+            }
         }
 
         binding.tvRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
     }
+
+    private fun openMainScreen() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    private fun applySystemInsets() {
+        val root = binding.root
+        val initialLeft = root.paddingLeft
+        val initialTop = root.paddingTop
+        val initialRight = root.paddingRight
+        val initialBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                initialLeft + bars.left,
+                initialTop + bars.top,
+                initialRight + bars.right,
+                initialBottom + bars.bottom )
+            insets }
+
+        ViewCompat.requestApplyInsets(root)
+    }
+
 }

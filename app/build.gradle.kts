@@ -1,6 +1,13 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+}
+
+val localProperties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
 }
 
 android {
@@ -9,6 +16,8 @@ android {
         version = release(36)
     }
 
+
+
     defaultConfig {
         applicationId = "com.github.carlosliszt.plantsiot"
         minSdk = 24
@@ -16,8 +25,13 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "MQTT_USER", "\"${project.properties["MQTT_USER"]}\"")
-        buildConfigField("String", "MQTT_PASS", "\"${project.properties["MQTT_PASS"]}\"")
+
+        val apiKey = localProperties.getProperty("TREFLE_API_TOKEN") ?: ""
+
+        buildConfigField("String", "MQTT_BROKER", "\"ssl://3324ab5a5cd44751b6c3aacc57b60320.s1.eu.hivemq.cloud:8883\"")
+        buildConfigField("String", "MQTT_USER", "\"alice\"")
+        buildConfigField("String", "MQTT_PASS", "\"123456789\"")
+        buildConfigField("String", "TREFLE_API_TOKEN", "\"${apiKey}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

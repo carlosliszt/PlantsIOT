@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/cream"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -19,6 +19,15 @@
             android:textStyle="bold"
             android:textColor="@color/green_dark"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Gráfico de temperatura e pH (últimas 10 leituras)"
+            android:textColor="@color/green_dark"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,6 +42,15 @@
                 android:padding="16dp"/>
 
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Gráfico de composição da cor da planta (última leitura)"
+            android:textColor="@color/green_dark"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
@@ -49,6 +67,14 @@
 
 
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReturn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/back"
+            android:layout_marginTop="16dp"
+            app:backgroundTint="@color/green_soft"/>
 
     </LinearLayout>
 

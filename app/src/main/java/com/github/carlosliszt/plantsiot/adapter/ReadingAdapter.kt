@@ -2,6 +2,7 @@ package com.github.carlosliszt.plantsiot.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.github.carlosliszt.plantsiot.databinding.ItemReadingBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
@@ -31,8 +32,43 @@ class ReadingAdapter(private val items: List<PlantReading>) :
         val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
 
         holder.binding.tvStatus.text = item.healthStatus
+        holder.binding.ivStatus.setColorFilter(
+            statusColor(holder.binding.root.context, item.healthScore, item.healthStatus)
+        )
         holder.binding.tvHeight.text = "Altura: ${item.heightCm} cm"
         holder.binding.tvScore.text = "Score: ${item.healthScore}"
+        holder.binding.tvEnvironment.text =
+            "Temperatura: ${item.temperatureC} °C  •  Ar: ${item.airHumidity}%\n" +
+            "Solo: ${item.soilMoisture}%  •  Luz: ${item.luminosity} lux  •  pH: ${item.ph}"
+        holder.binding.tvRgb.text = "RGB: ${item.red}, ${item.green}, ${item.blue}"
+        holder.binding.tvNotes.text = item.notes.ifBlank { "Sem observações" }
+        holder.binding.tvTopic.text = "Tópico: ${item.sourceTopic}"
         holder.binding.tvDate.text = sdf.format(Date(item.timestamp))
     }
+
+    private fun statusColor(context: android.content.Context, score: Int, status: String): Int {
+        val normalizedStatus = status.lowercase(Locale.ROOT)
+        return when {
+            normalizedStatus.contains("crít") ||
+                normalizedStatus.contains("crit") ||
+                normalizedStatus.contains("vermelh") ||
+                score < 30 -> ContextCompat.getColor(
+                context,
+                com.github.carlosliszt.plantsiot.R.color.danger
+            )
+            normalizedStatus.contains("murch") ||
+                normalizedStatus.contains("seca") ||
+                score < 60 -> android.graphics.Color.rgb(158, 117, 85)
+            normalizedStatus.contains("amarel") ||
+                score < 80 -> ContextCompat.getColor(
+                context,
+                com.github.carlosliszt.plantsiot.R.color.accent_gold
+            )
+            else -> ContextCompat.getColor(
+                context,
+                com.github.carlosliszt.plantsiot.R.color.green_soft
+            )
+        }
+    }
+
 }

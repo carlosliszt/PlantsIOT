@@ -4,23 +4,22 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityRegisterBinding
-import com.github.carlosliszt.plantsiot.model.UserProfile
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
-    private lateinit var auth: FirebaseAuth
-    private val db = FirebaseDatabase.getInstance().reference
+    private val firebaseRepository = FirebaseRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        auth = FirebaseAuth.getInstance()
+        applySystemInsets()
 
         binding.btnRegister.setOnClickListener {
             val name = binding.etName.text.toString().trim()
@@ -32,20 +31,38 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnSuccessListener { result ->
-                    val uid = result.user?.uid ?: return@addOnSuccessListener
-                    val profile = UserProfile(name, email)
+            binding.btnRegister.isEnabled = false
+            firebaseRepository.register(name, email, password) { success, error ->
+                binding.btnRegister.isEnabled = true
+                if (!success) {
+                    Toast.makeText(this, error ?: "Não foi possível criar a conta.", Toast.LENGTH_LONG).show()
+                    return@register
+                }
 
-                    db.child("users").child(uid).setValue(profile)
-                        .addOnSuccessListener {
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
-                        }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Erro: ${it.message}", Toast.LENGTH_LONG).show()
-                }
+                startActivity(Intent(this, PlantRegistrationActivity::class.java))
+                finish()
+            }
         }
+        binding.tvLogin.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+        }
+    }
+
+    private fun applySystemInsets() {
+        val root = binding.root
+        val initialLeft = root.paddingLeft
+        val initialTop = root.paddingTop
+        val initialRight = root.paddingRight
+        val initialBottom = root.paddingBottom
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                initialLeft + bars.left,
+                initialTop + bars.top,
+                initialRight + bars.right,
+                initialBottom + bars.bottom )
+            insets }
+
+        ViewCompat.requestApplyInsets(root)
     }
 }

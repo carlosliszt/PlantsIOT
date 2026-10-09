@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/cream"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/cream"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,103 +13,258 @@
         android:padding="20dp">
 
         <TextView
+            android:id="@+id/dashboardText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Dashboard da Planta"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/green_dark"/>
+            android:textColor="@color/green_dark"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvConnectionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Conectando ao HiveMQ..."
+            android:textColor="@color/accent_gold"
+            android:textStyle="bold" />
 
         <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="20dp">
+
+            <ImageView
+                android:id="@+id/ivPlantImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:minHeight="190dp"
+                android:minWidth="190dp"
+                android:contentDescription="Imagem da planta"
+                android:padding="0dp"
+
+                android:scaleType="fitCenter" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:cardCornerRadius="24dp">
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTakePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Tirar foto"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Câmera"
+                android:textColor="@color/green_dark"
+                android:tooltipText="Tirar foto"
+                app:icon="@drawable/ic_camera"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChoosePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Escolher foto do dispositivo"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Galeria"
+                android:textColor="@color/green_dark"
+                android:tooltipText="Escolher do dispositivo"
+                app:icon="@drawable/ic_gallery"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRemovePlantPhoto"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Remover foto"
+                android:minWidth="0dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="Remover"
+                android:textColor="@color/danger"
+                android:tooltipText="Remover foto"
+                app:icon="@drawable/ic_delete"
+                app:iconTint="@color/danger"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvLastUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Aguardando a primeira leitura"
+            android:textColor="@color/text_dark" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSensors"
+            style="@style/DashboardWidget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp">
 
             <LinearLayout
+                style="@style/DashboardWidgetContent"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/mint"
-                android:padding="20dp"
-                android:orientation="vertical">
-
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_sensors" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Sensores ambientais"
+                        android:textColor="@color/green_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvSensorSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Temperatura --  |  Solo --"
+                    android:textColor="@color/text_dark" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Status"
-                    android:textStyle="bold"
-                    android:textSize="20sp"/>
-
-                <TextView
-                    android:id="@+id/tvHealthStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Carregando..."
-                    android:textSize="18sp"
-                    android:layout_marginTop="8dp"/>
-
-                <TextView
-                    android:id="@+id/tvHealthScore"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pontuação"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_marginTop="4dp"
+                    android:text="Toque para ver todos os sensores"
+                    android:textColor="@color/green_soft"
+                    android:textSize="12sp" />
             </LinearLayout>
-
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardHealth"
+            style="@style/DashboardWidget"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:cardCornerRadius="24dp">
+            android:layout_marginTop="10dp">
 
             <LinearLayout
+                style="@style/DashboardWidgetContent"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="20dp"
-                android:orientation="vertical"
-                android:background="@android:color/white">
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
+                    <ImageView
+                        android:id="@+id/ivPlantHealth"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="Estado da saúde da planta"
+                        android:src="@drawable/potted_plant_24px" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Saúde da planta"
+                        android:textColor="@color/green_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvHealthSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Aguardando análise"
+                    android:textColor="@color/text_dark" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Crescimento"
-                    android:textStyle="bold"
-                    android:textSize="20sp"/>
-
-                <TextView
-                    android:id="@+id/tvHeight"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Altura estimada"
-                    android:layout_marginTop="8dp"/>
-
-                <TextView
-                    android:id="@+id/tvNotes"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Observações"
-                    android:layout_marginTop="8dp"/>
-
-
-
+                    android:layout_marginTop="4dp"
+                    android:text="Toque para ver RGB e indicadores"
+                    android:textColor="@color/green_soft"
+                    android:textSize="12sp" />
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardReadingDetails"
+            style="@style/DashboardWidget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
 
+            <LinearLayout
+                style="@style/DashboardWidgetContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_reading" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:text="Última leitura"
+                        android:textColor="@color/green_dark"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/tvReadingSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Nenhuma leitura recebida"
+                    android:textColor="@color/text_dark" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="Toque para ver detalhes completos"
+                    android:textColor="@color/green_soft"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReturn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
             android:text="Voltar"
-            android:layout_marginTop="16dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            app:backgroundTint="@color/green_soft"/>
-
+            app:backgroundTint="@color/green_soft" />
     </LinearLayout>
-
 </ScrollView>

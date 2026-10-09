@@ -26,19 +26,58 @@
             android:hint="Nome da planta"
             android:layout_marginTop="20dp"/>
 
-        <EditText
-            android:id="@+id/etPlantSpecies"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Espécie da planta"
-            android:layout_marginTop="20dp"/>
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/etTopic"
+            <EditText
+                android:id="@+id/etPlantSpecies"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Nome científico da planta"
+                android:inputType="textCapSentences" />
+
+            <ImageButton
+                android:id="@+id/btnSpeciesHelp"
+                style="@style/HelpIconButton"
+                android:contentDescription="Ajuda sobre nome científico"
+                android:tooltipText="O que é o nome científico?" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUnknownSpecies"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:text="Não sei o nome científico"
+            android:textColor="@color/accent_gold" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Tópico MQTT"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/etTopic"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Tópico MQTT (# recebe todos)"
+                android:inputType="text" />
+
+            <ImageButton
+                android:id="@+id/btnTopicHelp"
+                style="@style/HelpIconButton"
+                android:contentDescription="Ajuda sobre tópico MQTT"
+                android:tooltipText="O que é um tópico MQTT?" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
@@ -48,6 +87,15 @@
             android:layout_marginTop="16dp"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             app:backgroundTint="@color/green_dark"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReturn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/back"
+            android:layout_marginTop="16dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            app:backgroundTint="@color/green_soft"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogout"

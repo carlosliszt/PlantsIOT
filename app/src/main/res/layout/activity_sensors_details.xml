@@ -32,15 +32,113 @@
             app:cardCornerRadius="20dp"
             app:cardElevation="4dp">
 
-            <TextView
-                android:id="@+id/tvSensorsDetails"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/white"
-                android:lineSpacingExtra="6dp"
                 android:padding="20dp"
-                android:textColor="@color/text_dark"
-                android:textSize="18sp" />
+                android:orientation="vertical">
+
+                <LinearLayout
+                    style="@style/SensorRow">
+                    <ImageView
+                        style="@style/SensorIcon"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_temperature" />
+                    <TextView
+                        android:id="@+id/tvTemperature"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_dark"
+                        android:textSize="18sp" />
+                    <ImageButton
+                        android:id="@+id/btnTemperatureHelp"
+                        style="@style/HelpIconButton"
+                        android:contentDescription="Ajuda sobre temperatura"
+                        android:tooltipText="O que é temperatura?" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/SensorRow">
+                    <ImageView
+                        style="@style/SensorIcon"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_air_humidity" />
+                    <TextView
+                        android:id="@+id/tvAirHumidity"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_dark"
+                        android:textSize="18sp" />
+                    <ImageButton
+                        android:id="@+id/btnAirHumidityHelp"
+                        style="@style/HelpIconButton"
+                        android:contentDescription="Ajuda sobre umidade do ar"
+                        android:tooltipText="O que é umidade do ar?" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/SensorRow">
+                    <ImageView
+                        style="@style/SensorIcon"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_soil_moisture" />
+                    <TextView
+                        android:id="@+id/tvSoilMoisture"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_dark"
+                        android:textSize="18sp" />
+                    <ImageButton
+                        android:id="@+id/btnSoilMoistureHelp"
+                        style="@style/HelpIconButton"
+                        android:contentDescription="Ajuda sobre umidade do solo"
+                        android:tooltipText="O que é umidade do solo?" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/SensorRow">
+                    <ImageView
+                        style="@style/SensorIcon"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_luminosity" />
+                    <TextView
+                        android:id="@+id/tvLuminosity"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_dark"
+                        android:textSize="18sp" />
+                    <ImageButton
+                        android:id="@+id/btnLuminosityHelp"
+                        style="@style/HelpIconButton"
+                        android:contentDescription="Ajuda sobre luminosidade"
+                        android:tooltipText="O que é luminosidade?" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/SensorRow">
+                    <ImageView
+                        style="@style/SensorIcon"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_ph" />
+                    <TextView
+                        android:id="@+id/tvPh"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/text_dark"
+                        android:textSize="18sp" />
+                    <ImageButton
+                        android:id="@+id/btnPhHelp"
+                        style="@style/HelpIconButton"
+                        android:contentDescription="Ajuda sobre pH"
+                        android:tooltipText="O que é pH?" />
+                </LinearLayout>
+            </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 

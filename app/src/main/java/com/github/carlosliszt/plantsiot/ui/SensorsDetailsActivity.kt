@@ -24,11 +24,44 @@ class SensorsDetailsActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemInsets()
         val reading = ReadingStore(this).latest()
-        binding.tvSensorsDetails.text = reading?.let {
-            String.format(Locale.getDefault(), "Temperatura: %.1f °C\nUmidade do ar: %.1f %%\nUmidade do solo: %.1f %%\nLuminosidade: %.1f lux\npH: %.1f", it.temperatureC, it.airHumidity, it.soilMoisture, it.luminosity, it.ph)
-        } ?: "Nenhuma leitura disponível."
+        if (reading != null) {
+            binding.tvTemperature.text = String.format(Locale.getDefault(), "Temperatura: %.1f °C", reading.temperatureC)
+            binding.tvAirHumidity.text = String.format(Locale.getDefault(), "Umidade do ar: %.1f %%", reading.airHumidity)
+            binding.tvSoilMoisture.text = String.format(Locale.getDefault(), "Umidade do solo: %.1f %%", reading.soilMoisture)
+            binding.tvLuminosity.text = String.format(Locale.getDefault(), "Luminosidade: %.1f lux", reading.luminosity)
+            binding.tvPh.text = String.format(Locale.getDefault(), "pH: %.1f", reading.ph)
+        } else {
+            binding.tvTemperature.text = "Temperatura: Nenhuma leitura disponível."
+            binding.tvAirHumidity.text = "Umidade do ar: Nenhuma leitura disponível."
+            binding.tvSoilMoisture.text = "Umidade do solo: Nenhuma leitura disponível."
+            binding.tvLuminosity.text = "Luminosidade: Nenhuma leitura disponível."
+            binding.tvPh.text = "pH: Nenhuma leitura disponível."
+        }
+        binding.btnTemperatureHelp.setOnClickListener {
+            showHelp("Temperatura", "Indica o calor do ambiente onde a planta está. Temperaturas muito altas ou baixas podem prejudicar o desenvolvimento.")
+        }
+        binding.btnAirHumidityHelp.setOnClickListener {
+            showHelp("Umidade do ar", "Indica a quantidade de vapor de água no ar, em porcentagem. Ela influencia a transpiração e a hidratação da planta.")
+        }
+        binding.btnSoilMoistureHelp.setOnClickListener {
+            showHelp("Umidade do solo", "Indica quanto de água existe no solo, em porcentagem. Use esse valor para saber se a planta pode precisar de água.")
+        }
+        binding.btnLuminosityHelp.setOnClickListener {
+            showHelp("Luminosidade", "Mede a intensidade da luz recebida pelo sensor, em lux. A quantidade adequada depende da espécie da planta.")
+        }
+        binding.btnPhHelp.setOnClickListener {
+            showHelp("pH do solo", "Mede se o solo é ácido ou alcalino em uma escala de 0 a 14. A maioria das plantas prefere um pH levemente ácido.")
+        }
         binding.btnReturn.setOnClickListener { finish() }
         loadCharts()
+    }
+
+    private fun showHelp(title: String, message: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("Entendi", null)
+            .show()
     }
 
     private fun loadCharts() {

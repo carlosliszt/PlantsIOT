@@ -121,6 +121,22 @@ class AppApplication : Application(), MqttManager.Listener {
         plantImage = bitmap
     }
 
+    fun clearSession() {
+        listeners.clear()
+        mqttManager?.disconnect()
+        mqttManager = null
+        initialized = false
+        initializationInProgress = false
+        pendingCallbacks.clear()
+        plant = emptyMap()
+        plantImage = null
+        userName = "Usuário"
+        connectionState = MqttManager.ConnectionState.CONNECTING
+        connectionMessage = "Conectando ao HiveMQ..."
+        readingStore.clear()
+        PlantImageCache.bindAccount(null)
+    }
+
     fun restorePlantImage(onComplete: (Bitmap?) -> Unit) {
         firebaseRepository.loadPlant { loadedPlant, error ->
             if (error != null || loadedPlant == null) {

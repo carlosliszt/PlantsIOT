@@ -37,6 +37,8 @@
         <activity
             android:name=".ui.PlantRegistrationActivity"/>
         <activity
+            android:name=".ui.SpeciesCatalogActivity"/>
+        <activity
             android:name=".ui.LoginActivity"/>
         <activity
             android:name=".ui.MainActivity"

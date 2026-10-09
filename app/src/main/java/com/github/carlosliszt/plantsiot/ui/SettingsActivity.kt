@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
-import com.github.carlosliszt.plantsiot.data.ReadingStore
+import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
@@ -20,6 +20,27 @@ class SettingsActivity : AppCompatActivity() {
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applySystemInsets()
+
+        binding.btnSpeciesHelp.setOnClickListener {
+            showHelp(
+                "Nome científico",
+                "Informe o nome científico da planta. Ele é usado para buscar a imagem correta da planta."
+            )
+        }
+        binding.btnTopicHelp.setOnClickListener {
+            showHelp(
+                "Tópico MQTT",
+                "Informe o tópico usado pelo dispositivo para publicar as leituras dos sensores. " +
+                    "O símbolo # recebe mensagens de todos os tópicos."
+            )
+        }
+        binding.btnUnknownSpecies.setOnClickListener {
+            val query = binding.etPlantName.text.toString().trim()
+            speciesCatalog.launch(
+                Intent(this, SpeciesCatalogActivity::class.java)
+                    .putExtra(PlantRegistrationActivity.EXTRA_SEARCH_QUERY, query)
+            )
+        }
 
         firebaseRepository.loadPlant { plant, error ->
             if (error != null || plant == null) {
@@ -54,11 +75,29 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.btnLogout.setOnClickListener {
-            ReadingStore(this).clear()
+            (application as AppApplication).clearSession()
             firebaseRepository.logout()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
+    }
+
+    private val speciesCatalog = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            result.data
+                ?.getStringExtra(PlantRegistrationActivity.EXTRA_SPECIES)
+                ?.let(binding.etPlantSpecies::setText)
+        }
+    }
+
+    private fun showHelp(title: String, message: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("Entendi", null)
+            .show()
     }
 
     private fun applySystemInsets() {

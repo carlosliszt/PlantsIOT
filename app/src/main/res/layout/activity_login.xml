@@ -22,13 +22,27 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="24dp">
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Plant IoT"
-            android:textStyle="bold"
-            android:textSize="28sp"
-            android:textColor="@color/green_dark"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_launcher_foreground"
+                app:tint="@color/green_dark" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Plants IoT"
+                android:textStyle="bold"
+                android:textSize="28sp"
+                android:textColor="@color/green_dark"/>
+            </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

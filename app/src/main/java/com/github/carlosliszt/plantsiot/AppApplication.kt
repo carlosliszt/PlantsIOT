@@ -53,32 +53,39 @@ class AppApplication : Application(), MqttManager.Listener {
         if (initializationInProgress) return
         initializationInProgress = true
 
-        val user = firebaseRepository.currentUser()
-        if (user == null) {
-            finishInitialization(false, "Usuário não autenticado.")
-            return
-        }
-        PlantImageCache.bindAccount(user.uid)
-        val database = FirebaseDatabase.getInstance().reference
-        database.child("users").child(user.uid).child("name").get()
-            .addOnSuccessListener { userName = it.getValue(String::class.java) ?: "Usuário" }
-            .addOnFailureListener { }
-        firebaseRepository.hasPlant { hasPlant, error ->
-            if (error != null || !hasPlant) {
-                finishInitialization(false, error ?: "Nenhuma planta cadastrada.")
-                return@hasPlant
+        firebaseRepository.validateCurrentAccount { accountValid, accountError ->
+            if (!accountValid) {
+                finishInitialization(false, accountError ?: "Usuário não autenticado.")
+                return@validateCurrentAccount
             }
-            firebaseRepository.loadPlant { loadedPlant, plantError ->
-                if (plantError != null || loadedPlant == null) {
-                    finishInitialization(false, plantError ?: "Não foi possível carregar a planta.")
-                    return@loadPlant
+
+            val user = firebaseRepository.currentUser()
+            if (user == null) {
+                finishInitialization(false, "Usuário não autenticado.")
+                return@validateCurrentAccount
+            }
+            PlantImageCache.bindAccount(user.uid)
+            val database = FirebaseDatabase.getInstance().reference
+            database.child("users").child(user.uid).child("name").get()
+                .addOnSuccessListener { userName = it.getValue(String::class.java) ?: "Usuário" }
+                .addOnFailureListener { }
+            firebaseRepository.hasPlant { hasPlant, error ->
+                if (error != null || !hasPlant) {
+                    finishInitialization(false, error ?: "Nenhuma planta cadastrada.")
+                    return@hasPlant
                 }
-                plant = loadedPlant
-                firebaseRepository.loadReadings { readings, readingsError ->
-                    if (readingsError == null && readings.isNotEmpty()) {
-                        readingStore.replaceAll(readings)
+                firebaseRepository.loadPlant { loadedPlant, plantError ->
+                    if (plantError != null || loadedPlant == null) {
+                        finishInitialization(false, plantError ?: "Não foi possível carregar a planta.")
+                        return@loadPlant
                     }
-                    loadImageAndFinish()
+                    plant = loadedPlant
+                    firebaseRepository.loadReadings { readings, readingsError ->
+                        if (readingsError == null && readings.isNotEmpty()) {
+                            readingStore.replaceAll(readings)
+                        }
+                        loadImageAndFinish()
+                    }
                 }
             }
         }

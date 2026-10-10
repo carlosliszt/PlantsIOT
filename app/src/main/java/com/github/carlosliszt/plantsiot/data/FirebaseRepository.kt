@@ -14,6 +14,34 @@ class FirebaseRepository {
 
     fun currentUser() = auth.currentUser
 
+    fun validateCurrentAccount(onResult: (Boolean, String?) -> Unit) {
+        val user = auth.currentUser ?: run {
+            onResult(false, "Usuário não autenticado.")
+            return
+        }
+
+        user.reload().addOnCompleteListener { reloadTask ->
+            if (!reloadTask.isSuccessful || auth.currentUser == null) {
+                auth.signOut()
+                onResult(false, "Usuário não autenticado.")
+                return@addOnCompleteListener
+            }
+
+            database.child("users").child(user.uid).get()
+                .addOnSuccessListener { snapshot ->
+                    if (!snapshot.exists()) {
+                        auth.signOut()
+                        onResult(false, "Conta não encontrada.")
+                    } else {
+                        onResult(true, null)
+                    }
+                }
+                .addOnFailureListener { error ->
+                    onResult(false, error.message ?: "Não foi possível validar a conta.")
+                }
+        }
+    }
+
     fun login(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
         if (email.isBlank() || password.isBlank()) {
             onComplete(false, "Informe e-mail e senha.")

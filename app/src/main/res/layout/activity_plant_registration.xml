@@ -1,133 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/cream"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/cream"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:gravity="center_vertical">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cadastrar planta"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/green_dark" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Informe os dados da sua planta para iniciar o monitoramento"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/text_dark" />
-
-        <EditText
-            android:id="@+id/etPlantName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nome da planta"
-            android:layout_marginTop="28dp" />
+        android:layout_height="wrap_content">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/container"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_margin="24dp"
+            android:background="@android:color/white"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:padding="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_launcher_foreground"
+                    app:tint="@color/green_dark" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Plants IoT"
+                    android:textColor="@color/green_dark"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Cadastrar planta"
+                android:textColor="@color/text_dark"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Informe os dados para iniciar o monitoramento."
+                android:textColor="@color/text_dark"
+                android:textSize="14sp" />
 
             <EditText
-                android:id="@+id/etPlantSpecies"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Nome científico"
-                android:inputType="textCapSentences" />
-
-            <ImageButton
-                android:id="@+id/btnSpeciesHelp"
-                android:layout_width="48dp"
+                android:id="@+id/etPlantName"
+                android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Ajuda sobre nome científico"
-                android:padding="12dp"
-                android:src="@drawable/ic_help"
-                android:tooltipText="O que é o nome científico?" />
+                android:layout_marginTop="20dp"
+                android:hint="Nome da planta"
+                android:inputType="textCapSentences"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/etPlantSpecies"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:hint="Nome científico"
+                    android:inputType="textCapSentences"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp" />
+
+                <ImageButton
+                    android:id="@+id/btnSpeciesHelp"
+                    style="@style/HelpIconButton"
+                    android:contentDescription="Ajuda sobre nome científico"
+                    android:tooltipText="O que é o nome científico?" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUnknownSpecies"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+                android:minHeight="40dp"
+                android:text="Não sei o nome científico"
+                android:textColor="@color/accent_gold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/etTopic"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:hint="Tópico MQTT"
+                    android:inputType="text"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp" />
+
+                <ImageButton
+                    android:id="@+id/btnTopicHelp"
+                    style="@style/HelpIconButton"
+                    android:contentDescription="Ajuda sobre tópico MQTT"
+                    android:tooltipText="O que é um tópico MQTT?" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="Imagem da planta"
+                android:textColor="@color/text_dark"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Opcional — você poderá adicionar uma depois."
+                android:textColor="@color/text_dark"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/ivPlantPreview"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="true"
+                android:background="@drawable/plant_image_rounded"
+                android:contentDescription="Prévia da imagem da planta"
+                android:padding="2dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnChoosePlantImage"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:text="Escolher imagem"
+                android:textColor="@color/green_dark"
+                app:icon="@drawable/ic_gallery"
+                app:iconTint="@color/green_dark" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSavePlant"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="18dp"
+                android:text="Salvar planta"
+                app:backgroundTint="@color/green_dark"
+                app:cornerRadius="8dp" />
+
         </LinearLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnUnknownSpecies"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="0dp"
-            android:text="Não sei o nome científico"
-            android:textColor="@color/accent_gold" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <EditText
-                android:id="@+id/etTopic"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="Tópico MQTT"
-                android:inputType="text" />
-
-            <ImageButton
-                android:id="@+id/btnTopicHelp"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Ajuda sobre tópico MQTT"
-                android:padding="12dp"
-                android:src="@drawable/ic_help"
-                android:tooltipText="O que é um tópico MQTT?" />
-        </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Imagem da planta (opcional)"
-            android:textColor="@color/green_dark"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:id="@+id/ivPlantPreview"
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:layout_marginTop="8dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="Prévia da imagem da planta"
-            android:scaleType="centerCrop"
-            android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnChoosePlantImage"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Enviar imagem (opcional)"
-            android:textColor="@color/green_dark"
-            app:icon="@drawable/ic_gallery" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSavePlant"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Salvar planta"
-            android:layout_marginTop="20dp"
-            app:backgroundTint="@color/green_dark" />
-
-    </LinearLayout>
 </ScrollView>

@@ -1,65 +1,134 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/cream"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/cream"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:gravity="center_vertical">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/container"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Criar conta"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/green_dark"/>
+            android:layout_margin="24dp"
+            android:background="@android:color/white"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:padding="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <EditText
-            android:id="@+id/etName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nome"
-            android:layout_marginTop="24dp"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/etEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="E-mail"
-            android:inputType="textEmailAddress"
-            android:layout_marginTop="12dp"/>
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_launcher_foreground"
+                    app:tint="@color/green_dark" />
 
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Senha"
-            android:inputType="textPassword"
-            android:layout_marginTop="12dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Plants IoT"
+                    android:textColor="@color/green_dark"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Já tem uma conta? Faça login!"
-            android:textStyle="bold"
-            android:textColor="@color/accent_gold"
-            android:layout_marginTop="16dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Crie sua conta"
+                android:textColor="@color/text_dark"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRegister"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Cadastrar"
-            android:layout_marginTop="20dp"
-            app:backgroundTint="@color/green_dark"
-            xmlns:app="http://schemas.android.com/apk/res-auto"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Acompanhe sua planta de um jeito simples."
+                android:textColor="@color/text_dark"
+                android:textSize="14sp" />
 
-    </LinearLayout>
+            <EditText
+                android:id="@+id/etName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:autofillHints="name"
+                android:hint="Nome"
+                android:inputType="textPersonName"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                />
+
+            <EditText
+                android:id="@+id/etEmail"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:autofillHints="emailAddress"
+                android:hint="E-mail"
+                android:inputType="textEmailAddress"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                />
+
+            <EditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:autofillHints="password"
+                android:hint="Senha"
+                android:inputType="textPassword"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:textColor="@color/text_dark"
+                />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRegister"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:text="Cadastrar"
+                android:textSize="15sp"
+                app:backgroundTint="@color/green_dark"
+                app:cornerRadius="8dp" />
+
+            <TextView
+                android:id="@+id/tvLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:padding="6dp"
+                android:text="Já tem uma conta? Faça login"
+                android:textColor="@color/accent_gold"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

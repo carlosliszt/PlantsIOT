@@ -2,6 +2,7 @@ package com.github.carlosliszt.plantsiot.data
 
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.database.FirebaseDatabase
 
 class FirebaseRepository {
@@ -111,6 +112,108 @@ class FirebaseRepository {
                     onComplete?.invoke(false, task.exception?.message ?: "Falha ao atualizar perfil.")
                 }
             }
+
+    }
+
+    fun updateNameWithPassword(
+        name: String,
+        currentPassword: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        reauthenticate(currentPassword) { success, error ->
+            if (!success) {
+                onComplete(false, error)
+                return@reauthenticate
+            }
+            val user = auth.currentUser ?: run {
+                onComplete(false, "Usuário não autenticado.")
+                return@reauthenticate
+            }
+            user.updateProfile(
+                com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                    .setDisplayName(name)
+                    .build()
+            ).addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    onComplete(false, task.exception?.message ?: "Falha ao atualizar o nome.")
+                    return@addOnCompleteListener
+                }
+                saveUserProfile(name, user.email.orEmpty(), onComplete)
+            }
+        }
+    }
+
+    fun updateEmailWithPassword(
+        email: String,
+        currentPassword: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        reauthenticate(currentPassword) { success, error ->
+            if (!success) {
+                onComplete(false, error)
+                return@reauthenticate
+            }
+            val user = auth.currentUser ?: run {
+                onComplete(false, "Usuário não autenticado.")
+                return@reauthenticate
+            }
+            user.updateEmail(email).addOnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    onComplete(false, task.exception?.message ?: "Falha ao atualizar o e-mail.")
+                    return@addOnCompleteListener
+                }
+                saveUserProfile(user.displayName.orEmpty(), email, onComplete)
+            }
+        }
+    }
+
+    fun updatePasswordWithPassword(
+        newPassword: String,
+        currentPassword: String,
+        onComplete: (Boolean, String?) -> Unit
+    ) {
+        reauthenticate(currentPassword) { success, error ->
+            if (!success) {
+                onComplete(false, error)
+                return@reauthenticate
+            }
+            auth.currentUser?.updatePassword(newPassword)
+                ?.addOnCompleteListener { task ->
+                    onComplete(
+                        task.isSuccessful,
+                        if (task.isSuccessful) null else
+                            task.exception?.message ?: "Falha ao atualizar a senha."
+                    )
+                }
+                ?: onComplete(false, "Usuário não autenticado.")
+        }
+    }
+
+    fun sendPasswordReset(email: String, onComplete: (Boolean, String?) -> Unit) {
+        auth.sendPasswordResetEmail(email).addOnCompleteListener { task ->
+            onComplete(
+                task.isSuccessful,
+                if (task.isSuccessful) null else
+                    task.exception?.message ?: "Falha ao enviar o e-mail de recuperação."
+            )
+        }
+    }
+
+    private fun reauthenticate(password: String, onComplete: (Boolean, String?) -> Unit) {
+        if (password.isBlank()) {
+            onComplete(false, "Informe sua senha atual.")
+            return
+        }
+        val user = auth.currentUser
+        val email = user?.email
+        if (user == null || email.isNullOrBlank()) {
+            onComplete(false, "Usuário não autenticado.")
+            return
+        }
+        user.reauthenticate(EmailAuthProvider.getCredential(email, password))
+            .addOnCompleteListener { task ->
+                onComplete(task.isSuccessful, if (task.isSuccessful) null else "Senha atual inválida.")
+            }
     }
 
     fun savePlant(plantName: String, plantSpecies: String, topic: String, plantId: String = DEFAULT_PLANT_ID, onComplete: ((Boolean, String?) -> Unit)? = null) {
@@ -170,8 +273,14 @@ class FirebaseRepository {
             }
     }
 
-    fun saveSettings(plantName: String, plantSpecies: String, topic: String, plantId: String = DEFAULT_PLANT_ID) {
-        savePlant(plantName, plantSpecies, topic, plantId)
+    fun saveSettings(
+        plantName: String,
+        plantSpecies: String,
+        topic: String,
+        plantId: String = DEFAULT_PLANT_ID,
+        onComplete: ((Boolean, String?) -> Unit)? = null
+    ) {
+        savePlant(plantName, plantSpecies, topic, plantId, onComplete)
     }
 
     fun savePlantImageBase64(

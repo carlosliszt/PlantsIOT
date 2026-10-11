@@ -50,6 +50,24 @@ class LoginActivity : AppCompatActivity() {
         binding.tvRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+
+        binding.tvForgotPassword.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Informe seu e-mail para recuperar a senha.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            binding.tvForgotPassword.isEnabled = false
+            firebaseRepository.sendPasswordReset(email) { success, error ->
+                binding.tvForgotPassword.isEnabled = true
+                Toast.makeText(
+                    this,
+                    if (success) "E-mail de recuperação enviado." else
+                        error ?: "Não foi possível enviar o e-mail de recuperação.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 
     private fun openMainScreen() {

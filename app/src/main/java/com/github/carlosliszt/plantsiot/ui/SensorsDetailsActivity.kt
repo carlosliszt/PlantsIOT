@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivitySensorsDetailsBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.util.DialogStyler
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -57,11 +58,13 @@ class SensorsDetailsActivity : AppCompatActivity() {
     }
 
     private fun showHelp(title: String, message: String) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("Entendi", null)
-            .show()
+            .create()
+        dialog.setOnShowListener { DialogStyler.apply(dialog) }
+        dialog.show()
     }
 
     private fun loadCharts() {

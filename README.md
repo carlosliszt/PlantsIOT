@@ -72,6 +72,10 @@ Se a saúde e a pontuação não forem enviadas, o app gera uma indicação auto
 
 O broker, usuário e senha fornecidos para esta versão já estão configurados em `app/build.gradle.kts`.
 
+As configurações de planta, conexão MQTT e conta são apresentadas em seções com ícones. Seus campos
+são editados em modais próprios. Alterações de nome, e-mail e senha exigem a senha atual; a tela de
+login também oferece recuperação de senha por e-mail.
+
 ## Diagnóstico rápido
 
 - **Usuário ou senha inválidos:** revise as credenciais do HiveMQ Cloud.

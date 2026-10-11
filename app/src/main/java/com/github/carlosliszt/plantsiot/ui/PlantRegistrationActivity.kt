@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.data.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityPlantRegistrationBinding
+import com.github.carlosliszt.plantsiot.util.DialogStyler
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -127,11 +128,13 @@ class PlantRegistrationActivity : AppCompatActivity() {
     }
 
     private fun showHelp(title: String, message: String) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("Entendi", null)
-            .show()
+            .create()
+        dialog.setOnShowListener { DialogStyler.apply(dialog) }
+        dialog.show()
     }
 
     private fun applySystemInsets() {

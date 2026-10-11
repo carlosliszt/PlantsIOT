@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -23,6 +22,8 @@ import com.github.carlosliszt.plantsiot.databinding.ActivityDashboardBinding
 import com.github.carlosliszt.plantsiot.model.PlantReading
 import com.github.carlosliszt.plantsiot.model.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
+import com.github.carlosliszt.plantsiot.util.PlantHealth
+import com.github.carlosliszt.plantsiot.util.ReadingNotification
 import java.util.concurrent.Executors
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,6 +37,7 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     companion object {
         private const val KEY_PENDING_PHOTO_URI = "pending_photo_uri"
+        private const val NOTIFICATION_PERMISSION = 7001
     }
 
     private lateinit var binding: ActivityDashboardBinding
@@ -63,6 +65,8 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
     private var currentPlantSpecies: String = "Desconhecida"
     private var currentTopic: String = "#"
     private var pendingPhotoUri: Uri? = null
+    private var dashboardReady = false
+    private var lastNotifiedTimestamp = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +76,8 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
         applySystemInsets()
+        ReadingNotification.prepare(this)
+        ReadingNotification.requestPermission(this, NOTIFICATION_PERMISSION)
 
         currentPlantName = app.plant["name"] as? String ?: currentPlantName
         currentPlantSpecies = app.plant["species"] as? String ?: currentPlantSpecies
@@ -80,8 +86,12 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         app.plantImage?.let(binding.ivPlantImage::setImageBitmap)
         binding.tvApiImageNotice.visibility =
             if (app.image.imageSource == ImageSource.API) android.view.View.VISIBLE else android.view.View.GONE
-        ReadingStore(this).latest()?.let(::renderReading)
+        ReadingStore(this).latest()?.let {
+            lastNotifiedTimestamp = it.timestamp
+            renderReading(it)
+        }
         app.addMqttListener(this)
+        dashboardReady = true
         app.ensureMqttConnected()
 
         binding.btnReturn.setOnClickListener {
@@ -137,28 +147,19 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         tvSensorSummary.text = "Temperatura ${format(reading.temperatureC)} °C  |  Solo ${format(reading.soilMoisture)} %"
         tvHealthSummary.text = "${reading.healthStatus.ifBlank { "Aguardando análise" }}  |  ${reading.healthScore}/100"
         tvReadingSummary.text = "Altura ${format(reading.heightCm)} cm  |  pH ${format(reading.ph)}"
-        updatePlantHealthIcon(reading.healthScore, reading.healthStatus)
+        updatePlantHealthIcon(reading)
+        if (dashboardReady && reading.timestamp > lastNotifiedTimestamp) {
+            lastNotifiedTimestamp = reading.timestamp
+            ReadingNotification.show(this@DashboardActivity, currentPlantName, reading)
+        }
     }
 
     private fun renderHeader() {
         binding.dashboardText.text = "Dashboard - $currentPlantName ($currentPlantSpecies)"
     }
 
-    private fun updatePlantHealthIcon(score: Int, status: String) {
-        val normalizedStatus = status.lowercase(Locale.ROOT)
-        val iconColor = when {
-            normalizedStatus.contains("crít") ||
-                normalizedStatus.contains("crit") ||
-                normalizedStatus.contains("vermelh") ||
-                score < 30 -> Color.rgb(211, 47, 47)
-            normalizedStatus.contains("murch") ||
-                normalizedStatus.contains("seca") ||
-                score < 60 -> Color.rgb(158, 117, 85)
-            normalizedStatus.contains("amarel") ||
-                score < 80 -> Color.rgb(245, 180, 0)
-            else -> Color.rgb(46, 125, 50)
-        }
-        binding.ivPlantHealth.setColorFilter(iconColor)
+    private fun updatePlantHealthIcon(reading: PlantReading) {
+        binding.ivPlantHealth.setColorFilter(PlantHealth.color(reading))
     }
 
     private fun uploadPlantImage(uri: Uri, deleteAfterRead: Boolean = false) {
@@ -299,4 +300,5 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         }
         ViewCompat.requestApplyInsets(root)
     }
+
 }

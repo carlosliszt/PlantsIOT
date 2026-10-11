@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Confirme sua senha atual para alterar o nome."
+        android:textColor="@color/text_dark" />
+    <EditText
+        android:id="@+id/etDialogNewName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Novo nome"
+        android:inputType="textCapWords" />
+    <EditText
+        android:id="@+id/etDialogCurrentPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Senha atual"
+        android:inputType="textPassword" />
+</LinearLayout>

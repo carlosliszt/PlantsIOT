@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Escolha uma ação. A senha atual será solicitada no próximo passo."
+        android:textColor="@color/text_dark" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialogName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Alterar nome" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialogEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Alterar e-mail" />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDialogPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Alterar senha" />
+</LinearLayout>

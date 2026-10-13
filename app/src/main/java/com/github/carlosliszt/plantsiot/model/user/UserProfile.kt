@@ -1,4 +1,4 @@
-package com.github.carlosliszt.plantsiot.model
+package com.github.carlosliszt.plantsiot.model.user
 
 data class UserProfile(
     val name: String = "",

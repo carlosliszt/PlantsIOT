@@ -1,4 +1,4 @@
-package com.github.carlosliszt.plantsiot.data
+package com.github.carlosliszt.plantsiot.data.image
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

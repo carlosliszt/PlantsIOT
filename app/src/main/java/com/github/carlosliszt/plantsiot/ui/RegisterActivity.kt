@@ -6,13 +6,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.controller.AuthController
 import com.github.carlosliszt.plantsiot.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
-    private val firebaseRepository = FirebaseRepository()
+    private val authController = AuthController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,10 +32,11 @@ class RegisterActivity : AppCompatActivity() {
             }
 
             binding.btnRegister.isEnabled = false
-            firebaseRepository.register(name, email, password) { success, error ->
+            authController.register(name, email, password) { state ->
+                if (state.loading) return@register
                 binding.btnRegister.isEnabled = true
-                if (!success) {
-                    Toast.makeText(this, error ?: "Não foi possível criar a conta.", Toast.LENGTH_LONG).show()
+                if (!state.success) {
+                    Toast.makeText(this, state.error ?: "Não foi possível criar a conta.", Toast.LENGTH_LONG).show()
                     return@register
                 }
 

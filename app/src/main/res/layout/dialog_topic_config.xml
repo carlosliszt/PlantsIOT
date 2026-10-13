@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Use o tópico autorizado pelo broker. # recebe todos os tópicos permitidos."
+        android:textColor="@color/text_dark" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/etDialogTopic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Tópico MQTT"
+            android:inputType="text" />
+        <ImageButton
+            android:id="@+id/btnDialogTopicHelp"
+            style="@style/HelpIconButton"
+            android:contentDescription="Ajuda sobre tópico MQTT"
+            android:tooltipText="O que é um tópico MQTT?" />
+    </LinearLayout>
+</LinearLayout>

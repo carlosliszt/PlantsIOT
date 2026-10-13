@@ -9,8 +9,9 @@ import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.controller.PlantController
 import com.github.carlosliszt.plantsiot.databinding.ActivityPlantRegistrationBinding
+import com.github.carlosliszt.plantsiot.util.DialogStyler
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.Executors
 
@@ -22,7 +23,7 @@ class PlantRegistrationActivity : AppCompatActivity() {
     }
 
     private lateinit var binding: ActivityPlantRegistrationBinding
-    private val firebaseRepository = FirebaseRepository()
+    private val plantController = PlantController()
     private val imageExecutor = Executors.newSingleThreadExecutor()
     private var selectedImageUri: android.net.Uri? = null
     private val chooseImage = registerForActivityResult(
@@ -80,11 +81,12 @@ class PlantRegistrationActivity : AppCompatActivity() {
             }
 
             binding.btnSavePlant.isEnabled = false
-            firebaseRepository.savePlant(plantName, species, topic, FirebaseRepository.DEFAULT_PLANT_ID) { success, error ->
+            plantController.save(plantName, species, topic) { state ->
+                if (state.loading) return@save
                 binding.btnSavePlant.isEnabled = true
-                if (!success) {
-                    Toast.makeText(this, error ?: "Não foi possível salvar a planta.", Toast.LENGTH_LONG).show()
-                    return@savePlant
+                if (!state.success) {
+                    Toast.makeText(this, state.error ?: "Não foi possível salvar a planta.", Toast.LENGTH_LONG).show()
+                    return@save
                 }
 
                 saveSelectedImageAndOpenMain()
@@ -110,10 +112,11 @@ class PlantRegistrationActivity : AppCompatActivity() {
             val output = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)
             val encoded = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
-            firebaseRepository.savePlantImageBase64(encoded) { success, error ->
+            plantController.saveImage(encoded) { state ->
                 runOnUiThread {
-                    if (!success) {
-                        Toast.makeText(this, error ?: "Planta salva, mas a imagem não foi enviada.", Toast.LENGTH_LONG).show()
+                    if (state.loading) return@runOnUiThread
+                    if (!state.success) {
+                        Toast.makeText(this, state.error ?: "Planta salva, mas a imagem não foi enviada.", Toast.LENGTH_LONG).show()
                     }
                     openMain()
                 }
@@ -127,11 +130,13 @@ class PlantRegistrationActivity : AppCompatActivity() {
     }
 
     private fun showHelp(title: String, message: String) {
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle(title)
             .setMessage(message)
             .setPositiveButton("Entendi", null)
-            .show()
+            .create()
+        dialog.setOnShowListener { DialogStyler.apply(dialog) }
+        dialog.show()
     }
 
     private fun applySystemInsets() {

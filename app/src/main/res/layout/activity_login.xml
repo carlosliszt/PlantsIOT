@@ -80,6 +80,14 @@
             app:backgroundTint="@color/green_dark"/>
 
         <TextView
+            android:id="@+id/tvForgotPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Esqueci minha senha"
+            android:textColor="@color/green_dark"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
             android:id="@+id/tvRegister"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

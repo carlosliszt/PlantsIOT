@@ -2,22 +2,28 @@ package com.github.carlosliszt.plantsiot
 
 import android.app.Application
 import android.graphics.Bitmap
-import com.github.carlosliszt.plantsiot.data.PlantImageCache
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
-import com.github.carlosliszt.plantsiot.data.PlantImageLoader
-import com.github.carlosliszt.plantsiot.data.ReadingStore
-import com.github.carlosliszt.plantsiot.model.PlantReading
-import com.github.carlosliszt.plantsiot.model.Image
-import com.github.carlosliszt.plantsiot.model.ImageSource
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.image.PlantImageCache
+import com.github.carlosliszt.plantsiot.data.image.PlantImageLoader
+import com.github.carlosliszt.plantsiot.data.local.ReadingStore
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
+import com.github.carlosliszt.plantsiot.model.image.Image
+import com.github.carlosliszt.plantsiot.model.image.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
+import com.github.carlosliszt.plantsiot.controller.ReadingController
+import com.github.carlosliszt.plantsiot.controller.ApplicationInitializer
+import com.github.carlosliszt.plantsiot.model.plant.Plant
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
 import java.util.concurrent.Executors
 
-class AppApplication : Application(), MqttManager.Listener {
+class AppApplication : Application(), MqttManager.Listener, DefaultLifecycleObserver {
     val firebaseRepository by lazy { FirebaseRepository() }
     val readingStore by lazy { ReadingStore(this) }
-    var plant: Map<String, Any> = emptyMap()
+    var plant: Plant = Plant()
         private set
     var plantImage: Bitmap? = null
         private set
@@ -30,7 +36,11 @@ class AppApplication : Application(), MqttManager.Listener {
 
     private val imageExecutor = Executors.newSingleThreadExecutor()
     private val imageLoader = PlantImageLoader(imageExecutor)
+    private val initializer by lazy {
+        ApplicationInitializer(firebaseRepository, readingStore, imageLoader)
+    }
     private var mqttManager: MqttManager? = null
+    private var readingController: ReadingController? = null
     private val listeners = mutableSetOf<MqttManager.Listener>()
     private var connectionState = MqttManager.ConnectionState.CONNECTING
     private var connectionMessage = "Conectando ao HiveMQ..."
@@ -38,10 +48,11 @@ class AppApplication : Application(), MqttManager.Listener {
     private val pendingCallbacks = mutableListOf<(Boolean, String?) -> Unit>()
 
     override fun onCreate() {
-        super.onCreate()
+        super<Application>.onCreate()
         FirebaseApp.initializeApp(this)
         FirebaseDatabase.getInstance().setPersistenceEnabled(true)
         PlantImageCache.initialize(this)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
     fun initialize(onComplete: (Boolean, String?) -> Unit) {
@@ -53,64 +64,19 @@ class AppApplication : Application(), MqttManager.Listener {
         if (initializationInProgress) return
         initializationInProgress = true
 
-        firebaseRepository.validateCurrentAccount { accountValid, accountError ->
-            if (!accountValid) {
-                finishInitialization(false, accountError ?: "Usuário não autenticado.")
-                return@validateCurrentAccount
+        initializer.initialize { state, error ->
+            if (state == null) {
+                finishInitialization(false, error)
+                return@initialize
             }
-
-            val user = firebaseRepository.currentUser()
-            if (user == null) {
-                finishInitialization(false, "Usuário não autenticado.")
-                return@validateCurrentAccount
-            }
-            PlantImageCache.bindAccount(user.uid)
-            val database = FirebaseDatabase.getInstance().reference
-            database.child("users").child(user.uid).child("name").get()
-                .addOnSuccessListener { userName = it.getValue(String::class.java) ?: "Usuário" }
-                .addOnFailureListener { }
-            firebaseRepository.hasPlant { hasPlant, error ->
-                if (error != null || !hasPlant) {
-                    finishInitialization(false, error ?: "Nenhuma planta cadastrada.")
-                    return@hasPlant
-                }
-                firebaseRepository.loadPlant { loadedPlant, plantError ->
-                    if (plantError != null || loadedPlant == null) {
-                        finishInitialization(false, plantError ?: "Não foi possível carregar a planta.")
-                        return@loadPlant
-                    }
-                    plant = loadedPlant
-                    firebaseRepository.loadReadings { readings, readingsError ->
-                        if (readingsError == null && readings.isNotEmpty()) {
-                            readingStore.replaceAll(readings)
-                        }
-                        loadImageAndFinish()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun loadImageAndFinish() {
-        val base64 = plant["imageBase64"] as? String
-        val imageUrl = plant["imageUrl"] as? String
-        val species = plant["species"] as? String
-        val complete: (Bitmap?) -> Unit = { bitmap ->
-            plantImage = bitmap
-            image = Image(
-                url = if (bitmap == null) "" else "memory",
-                imageSource = if (!base64.isNullOrBlank()) ImageSource.USER else ImageSource.API
-            )
-            mqttManager = MqttManager(this, this).also {
-                it.connectAndSubscribe(plant["topic"] as? String ?: "#")
-            }
+            plant = state.plant
+            userName = state.userName
+            plantImage = state.bitmap
+            image = state.image
+            mqttManager = MqttManager(this, this)
+            readingController = mqttManager?.let(::ReadingController)
+            readingController?.connect(plant.topic.ifBlank { "#" })
             finishInitialization(true, null)
-        }
-        when {
-            !base64.isNullOrBlank() -> imageLoader.loadBase64(base64, complete)
-            !imageUrl.isNullOrBlank() -> imageLoader.loadUrl(imageUrl, complete)
-            !species.isNullOrBlank() -> imageLoader.load(species, complete)
-            else -> complete(null)
         }
     }
 
@@ -140,14 +106,23 @@ class AppApplication : Application(), MqttManager.Listener {
         )
     }
 
+    fun updateUserName(name: String) {
+        userName = name.ifBlank { "Usuário" }
+    }
+
+    fun updatePlant(name: String, species: String, topic: String) {
+        plant = plant.copy(name = name, species = species, topic = topic)
+    }
+
     fun clearSession() {
         listeners.clear()
         mqttManager?.disconnect()
         mqttManager = null
+        readingController = null
         initialized = false
         initializationInProgress = false
         pendingCallbacks.clear()
-        plant = emptyMap()
+        plant = Plant()
         plantImage = null
         image = Image()
         userName = "Usuário"
@@ -164,9 +139,9 @@ class AppApplication : Application(), MqttManager.Listener {
                 return@loadPlant
             }
             plant = loadedPlant
-            val base64 = loadedPlant["imageBase64"] as? String
-            val imageUrl = loadedPlant["imageUrl"] as? String
-            val species = loadedPlant["species"] as? String
+            val base64 = loadedPlant.imageBase64
+            val imageUrl = loadedPlant.imageUrl
+            val species = loadedPlant.species
             val complete: (Bitmap?) -> Unit = { bitmap ->
                 plantImage = bitmap
                 image = Image(
@@ -190,7 +165,20 @@ class AppApplication : Application(), MqttManager.Listener {
         ) {
             return
         }
-        mqttManager?.connectAndSubscribe(plant["topic"] as? String ?: "#")
+        readingController?.connect(plant.topic.ifBlank { "#" })
+    }
+
+    fun reconnectMqtt() {
+        mqttManager?.pause()
+        readingController?.connect(plant.topic.ifBlank { "#" })
+    }
+
+    override fun onStart(owner: LifecycleOwner) {
+        ensureMqttConnected()
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
+        mqttManager?.pause()
     }
 
     override fun onConnectionChanged(state: MqttManager.ConnectionState, message: String) {

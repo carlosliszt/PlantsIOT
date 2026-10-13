@@ -27,10 +27,13 @@ android {
 
 
         val apiKey = localProperties.getProperty("TREFLE_API_TOKEN") ?: ""
+        val mqttBroker = localProperties.getProperty("MQTT_BROKER") ?: ""
+        val mqttUser = localProperties.getProperty("MQTT_USER") ?: ""
+        val mqttPass = localProperties.getProperty("MQTT_PASS") ?: ""
 
-        buildConfigField("String", "MQTT_BROKER", "\"ssl://3324ab5a5cd44751b6c3aacc57b60320.s1.eu.hivemq.cloud:8883\"")
-        buildConfigField("String", "MQTT_USER", "\"alice\"")
-        buildConfigField("String", "MQTT_PASS", "\"123456789\"")
+        buildConfigField("String", "MQTT_BROKER", "\"${mqttBroker.replace("\"", "\\\"")}\"")
+        buildConfigField("String", "MQTT_USER", "\"${mqttUser.replace("\"", "\\\"")}\"")
+        buildConfigField("String", "MQTT_PASS", "\"${mqttPass.replace("\"", "\\\"")}\"")
         buildConfigField("String", "TREFLE_API_TOKEN", "\"${apiKey}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -65,6 +68,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation(libs.firebase.database)
     implementation(libs.firebase.auth)
+    implementation("androidx.lifecycle:lifecycle-process:2.9.4")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.ReadingStore
+import com.github.carlosliszt.plantsiot.data.local.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityReadingDetailsBinding
 
 class ReadingDetailsActivity : AppCompatActivity() {

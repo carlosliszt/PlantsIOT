@@ -7,13 +7,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.AppApplication
+import com.github.carlosliszt.plantsiot.data.local.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
+import com.github.carlosliszt.plantsiot.mqtt.MqttManager
+import com.github.carlosliszt.plantsiot.util.ReadingNotification
+import com.github.carlosliszt.plantsiot.controller.MainController
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MqttManager.Listener {
 
     private lateinit var binding: ActivityMainBinding
     private val app: AppApplication
         get() = application as AppApplication
+    private var mainReady = false
+    private var activityVisible = false
+    private var lastNotifiedTimestamp = 0L
+    private val mainController by lazy { MainController(app) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,13 +31,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         applySystemInsets()
+        ReadingNotification.prepare(this)
+        ReadingNotification.requestPermission(this, NOTIFICATION_PERMISSION)
+        lastNotifiedTimestamp = ReadingStore(this).latest()?.timestamp ?: 0L
 
-        if (app.firebaseRepository.currentUser() == null) {
+        if (!mainController.isAuthenticated()) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        app.initialize { success, error ->
+        mainController.initialize { success, error ->
             runOnUiThread {
                 if (!success) {
                     if (error == "Nenhuma planta cadastrada.") {
@@ -40,10 +52,15 @@ class MainActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 binding.tvWelcome.text = "Olá, ${app.userName}"
+                if (activityVisible) {
+                    mainReady = true
+                    app.addMqttListener(this)
+                }
                 app.plantImage?.let {
                     binding.ivPlantImage.setImageBitmap(it)
                     binding.ivPlantImage.visibility = View.VISIBLE
                 }
+
                 binding.cardDashboard.setOnClickListener {
                     startActivity(Intent(this, DashboardActivity::class.java))
                 }
@@ -63,6 +80,32 @@ class MainActivity : AppCompatActivity() {
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        activityVisible = true
+        binding.tvWelcome.text = "Olá, ${app.userName}"
+        if (app.initialized) {
+            mainReady = true
+            app.addMqttListener(this)
+        }
+    }
+
+    override fun onStop() {
+        activityVisible = false
+        mainReady = false
+        app.removeMqttListener(this)
+        super.onStop()
+    }
+
+    override fun onConnectionChanged(state: MqttManager.ConnectionState, message: String) = Unit
+
+    override fun onReading(reading: PlantReading) {
+        if (!mainReady || reading.timestamp <= lastNotifiedTimestamp) return
+        lastNotifiedTimestamp = reading.timestamp
+        val plantName = mainController.plantName()
+        ReadingNotification.show(this, plantName, reading)
     }
 
     private fun hideSplash() {
@@ -89,6 +132,10 @@ class MainActivity : AppCompatActivity() {
             insets }
 
         ViewCompat.requestApplyInsets(root)
+    }
+
+    private companion object {
+        const val NOTIFICATION_PERMISSION = 7001
     }
 
 }

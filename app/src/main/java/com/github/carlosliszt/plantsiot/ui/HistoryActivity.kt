@@ -10,9 +10,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.carlosliszt.plantsiot.R
 import com.github.carlosliszt.plantsiot.adapter.ReadingAdapter
-import com.github.carlosliszt.plantsiot.data.ReadingStore
+import com.github.carlosliszt.plantsiot.data.local.ReadingStore
 import com.github.carlosliszt.plantsiot.databinding.ActivityHistoryBinding
-import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 
 class HistoryActivity : AppCompatActivity() {
 

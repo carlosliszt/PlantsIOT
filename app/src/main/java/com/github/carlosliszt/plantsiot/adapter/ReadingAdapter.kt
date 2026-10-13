@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.github.carlosliszt.plantsiot.databinding.ItemReadingBinding
-import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -58,7 +58,7 @@ class ReadingAdapter(private val items: List<PlantReading>) :
             )
             normalizedStatus.contains("murch") ||
                 normalizedStatus.contains("seca") ||
-                score < 60 -> android.graphics.Color.rgb(158, 117, 85)
+                score < 60 -> android.graphics.Color.rgb(255,117,24)
             normalizedStatus.contains("amarel") ||
                 score < 80 -> ContextCompat.getColor(
                 context,

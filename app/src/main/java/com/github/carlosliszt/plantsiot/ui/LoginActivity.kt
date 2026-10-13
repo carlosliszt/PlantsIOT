@@ -6,13 +6,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.controller.AuthController
 import com.github.carlosliszt.plantsiot.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private val firebaseRepository = FirebaseRepository()
+    private val authController = AuthController()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +21,7 @@ class LoginActivity : AppCompatActivity() {
 
         applySystemInsets()
 
-        if (firebaseRepository.currentUser() != null) {
+        if (authController.currentUser() != null) {
             openMainScreen()
             return
         }
@@ -36,10 +36,11 @@ class LoginActivity : AppCompatActivity() {
             }
 
             binding.btnLogin.isEnabled = false
-            firebaseRepository.login(email, password) { success, error ->
+            authController.login(email, password) { state ->
+                if (state.loading) return@login
                 binding.btnLogin.isEnabled = true
-                if (!success) {
-                    Toast.makeText(this, error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
+                if (!state.success) {
+                    Toast.makeText(this, state.error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
                     return@login
                 }
 
@@ -49,6 +50,25 @@ class LoginActivity : AppCompatActivity() {
 
         binding.tvRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
+        }
+
+        binding.tvForgotPassword.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
+            if (email.isEmpty()) {
+                Toast.makeText(this, "Informe seu e-mail para recuperar a senha.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            binding.tvForgotPassword.isEnabled = false
+            authController.resetPassword(email) { state ->
+                if (state.loading) return@resetPassword
+                binding.tvForgotPassword.isEnabled = true
+                Toast.makeText(
+                    this,
+                    if (state.success) "E-mail de recuperação enviado." else
+                        state.error ?: "Não foi possível enviar o e-mail de recuperação.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 

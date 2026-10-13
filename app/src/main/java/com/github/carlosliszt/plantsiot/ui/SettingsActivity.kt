@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
+import com.github.carlosliszt.plantsiot.controller.PlantController
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
 import com.github.carlosliszt.plantsiot.R
 import com.github.carlosliszt.plantsiot.util.DialogStyler
@@ -19,6 +20,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
     private val firebaseRepository = FirebaseRepository()
+    private val plantController = PlantController(firebaseRepository)
     private var plantName = "Planta 01"
     private var plantSpecies = ""
     private var topic = "#"
@@ -31,7 +33,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(binding.root)
         applySystemInsets()
 
-        firebaseRepository.loadPlant { plant, error ->
+        plantController.load { plant, error ->
             if (error == null && plant != null) {
                 plantName = plant["name"] as? String ?: plantName
                 plantSpecies = plant["species"] as? String ?: plantSpecies
@@ -256,10 +258,10 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun savePlant(name: String, species: String, dialog: AlertDialog? = null) {
-        firebaseRepository.saveSettings(name, species, topic) { success, error ->
+        plantController.save(name, species, topic) { state ->
             runOnUiThread {
-                if (!success) {
-                    Toast.makeText(this, error ?: "Não foi possível salvar.", Toast.LENGTH_LONG).show()
+                if (!state.success) {
+                    Toast.makeText(this, state.error ?: "Não foi possível salvar.", Toast.LENGTH_LONG).show()
                     return@runOnUiThread
                 }
                 plantName = name

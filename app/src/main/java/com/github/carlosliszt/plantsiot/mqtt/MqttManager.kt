@@ -8,22 +8,19 @@ import com.github.carlosliszt.plantsiot.BuildConfig
 import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
 import com.github.carlosliszt.plantsiot.data.local.ReadingStore
 import com.github.carlosliszt.plantsiot.model.plant.PlantReading
+import com.github.carlosliszt.plantsiot.domain.ReadingParser
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
-import org.json.JSONObject
 import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLSocketFactory
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.roundToInt
 
 class MqttManager(
     context: Context,
@@ -52,6 +49,7 @@ class MqttManager(
     private var topicFilter = DEFAULT_TOPIC
     private var pendingSave: ScheduledFuture<*>? = null
     private var lastSavedTimestamp = latestReading.timestamp
+    private val readingParser = ReadingParser()
 
     fun connectAndSubscribe(topic: String = DEFAULT_TOPIC) {
         topicFilter = topic.trim().ifEmpty { DEFAULT_TOPIC }
@@ -115,162 +113,8 @@ class MqttManager(
         }
     }
 
-    private fun parseReading(topic: String, payload: String): PlantReading? {
-        val cleanPayload = payload.trim()
-        if (cleanPayload.isEmpty()) return null
-
-        val now = System.currentTimeMillis()
-        var reading = latestReading.copy(
-            timestamp = now,
-            sourceTopic = topic,
-            rawPayload = cleanPayload
-        )
-
-        val json = runCatching {
-            if (cleanPayload.startsWith("{")) JSONObject(cleanPayload) else null
-        }.getOrNull()
-        if (json != null && json.containsOfflineSignal()) return null
-
-        var rgbChanged = false
-        var explicitHealth: String? = null
-        var explicitScore: Int? = null
-
-        if (json != null) {
-            val data = json.optJSONObject("data") ?: json
-            val rgb = data.optJSONObject("rgb")
-                ?: data.optJSONObject("color")
-                ?: data.optJSONObject("cor")
-                ?: json.optJSONObject("rgb")
-
-            data.firstDouble("temperatureC", "temperaturaC", "temperatura_c", "temperature", "temperatura", "temp")
-                ?.let { reading = reading.copy(temperatureC = it) }
-            data.firstDouble("airHumidity", "humidityAir", "umidadeAr", "umidade_ar", "humidity", "umidade")
-                ?.let { reading = reading.copy(airHumidity = it) }
-            data.firstDouble("soilMoisture", "soilHumidity", "umidadeSolo", "umidade_solo", "soil_moisture")
-                ?.let { reading = reading.copy(soilMoisture = it) }
-            data.firstDouble("luminosity", "luminosidade", "light", "lux")
-                ?.let { reading = reading.copy(luminosity = it) }
-            data.firstDouble("ph", "pH", "phValue", "soilPh", "phSolo", "ph_solo")
-                ?.let { reading = reading.copy(ph = it) }
-            data.firstDouble("heightCm", "alturaCm", "height", "altura")
-                ?.let { reading = reading.copy(heightCm = it) }
-            data.firstDouble("greenIndex", "indiceVerde")
-                ?.let { reading = reading.copy(greenIndex = it) }
-            data.firstDouble("yellowIndex", "indiceAmarelo")
-                ?.let { reading = reading.copy(yellowIndex = it) }
-
-            val red = rgb?.firstInt("r", "R", "red", "redValue", "vermelho")
-                ?: data.firstInt("r", "R", "red", "redValue", "vermelho")
-            val green = rgb?.firstInt("g", "G", "green", "greenValue", "verde")
-                ?: data.firstInt("g", "G", "green", "greenValue", "verde")
-            val blue = rgb?.firstInt("b", "B", "blue", "blueValue", "azul")
-                ?: data.firstInt("b", "B", "blue", "blueValue", "azul")
-            if (red != null) {
-                reading = reading.copy(red = red.coerceIn(0, 255))
-                rgbChanged = true
-            }
-            if (green != null) {
-                reading = reading.copy(green = green.coerceIn(0, 255))
-                rgbChanged = true
-            }
-            if (blue != null) {
-                reading = reading.copy(blue = blue.coerceIn(0, 255))
-                rgbChanged = true
-            }
-
-            explicitHealth = data.firstString("healthStatus", "health", "saude", "saúde", "status")
-            explicitScore = data.firstInt("healthScore", "score", "pontuacao", "pontuação")
-            data.firstString("notes", "observacoes", "observações")
-                ?.let { reading = reading.copy(notes = it) }
-        } else {
-            val normalizedTopic = topic.lowercase(Locale.ROOT)
-            val numericValue = cleanPayload.trim('"').replace(',', '.').toDoubleOrNull()
-
-            when {
-                normalizedTopic.contains("temperatur") || normalizedTopic.endsWith("/temp") ->
-                    numericValue?.let { reading = reading.copy(temperatureC = it) }
-                normalizedTopic.contains("umidade") && normalizedTopic.contains("solo") ||
-                    normalizedTopic.contains("soil") && normalizedTopic.contains("moist") ->
-                    numericValue?.let { reading = reading.copy(soilMoisture = it) }
-                normalizedTopic.contains("umidade") || normalizedTopic.contains("humidity") ->
-                    numericValue?.let { reading = reading.copy(airHumidity = it) }
-                normalizedTopic.endsWith("/ph") || normalizedTopic.contains("ph_solo") ->
-                    numericValue?.let { reading = reading.copy(ph = it) }
-                normalizedTopic.contains("luminos") || normalizedTopic.endsWith("/lux") ||
-                    normalizedTopic.endsWith("/light") ->
-                    numericValue?.let { reading = reading.copy(luminosity = it) }
-                normalizedTopic.endsWith("/rgb") || normalizedTopic.endsWith("/cor") ||
-                    normalizedTopic.endsWith("/color") -> {
-                    val channels = cleanPayload
-                        .trim('"', '[', ']', '(', ')')
-                        .split(',', ';', ' ')
-                        .filter { it.isNotBlank() }
-                        .mapNotNull { it.toDoubleOrNull()?.roundToInt() }
-                    if (channels.size >= 3) {
-                        reading = reading.copy(
-                            red = channels[0].coerceIn(0, 255),
-                            green = channels[1].coerceIn(0, 255),
-                            blue = channels[2].coerceIn(0, 255)
-                        )
-                        rgbChanged = true
-                    } else return null
-                }
-                normalizedTopic.endsWith("/r") || normalizedTopic.endsWith("/red") ||
-                    normalizedTopic.endsWith("/vermelho") -> numericValue?.let {
-                    reading = reading.copy(red = it.roundToInt().coerceIn(0, 255)); rgbChanged = true
-                }
-                normalizedTopic.endsWith("/g") || normalizedTopic.endsWith("/green") ||
-                    normalizedTopic.endsWith("/verde") -> numericValue?.let {
-                    reading = reading.copy(green = it.roundToInt().coerceIn(0, 255)); rgbChanged = true
-                }
-                normalizedTopic.endsWith("/b") || normalizedTopic.endsWith("/blue") ||
-                    normalizedTopic.endsWith("/azul") -> numericValue?.let {
-                    reading = reading.copy(blue = it.roundToInt().coerceIn(0, 255)); rgbChanged = true
-                }
-                normalizedTopic.contains("score") || normalizedTopic.contains("pontuacao") ->
-                    explicitScore = numericValue?.roundToInt()
-                normalizedTopic.contains("saude") || normalizedTopic.contains("saúde") ||
-                    normalizedTopic.contains("health") || normalizedTopic.endsWith("/status") ->
-                    explicitHealth = cleanPayload.trim('"')
-                normalizedTopic.contains("altura") || normalizedTopic.contains("height") ->
-                    numericValue?.let { reading = reading.copy(heightCm = it) }
-                else -> return null
-            }
-        }
-
-        val normalizedHealth = explicitHealth?.trim()
-        if (!normalizedHealth.isNullOrBlank()) {
-            reading = reading.copy(healthStatus = normalizedHealth)
-        } else if (rgbChanged) {
-            reading = reading.copy(healthStatus = deriveHealth(reading.red, reading.green, reading.blue))
-        }
-
-        if (explicitScore != null) {
-            reading = reading.copy(healthScore = explicitScore!!.coerceIn(0, 100))
-        } else if (rgbChanged) {
-            reading = reading.copy(healthScore = deriveHealthScore(reading.red, reading.green, reading.blue))
-        }
-
-        return reading
-    }
-
-    private fun deriveHealth(red: Int, green: Int, blue: Int): String {
-        if (red + green + blue == 0) return "Aguardando leitura RGB"
-        val yellowish = red > blue * 1.25 && green > blue * 1.25 &&
-            abs(red - green) <= max(red, green) * 0.35
-        return when {
-            green >= red * 1.10 && green >= blue * 1.15 -> "Saudável"
-            yellowish -> "Atenção: possível amarelamento"
-            red > green * 1.20 -> "Atenção: baixa predominância de verde"
-            else -> "Monitorar coloração"
-        }
-    }
-
-    private fun deriveHealthScore(red: Int, green: Int, blue: Int): Int {
-        if (red + green + blue == 0) return 0
-        val dominance = green.toDouble() / max(1, max(red, blue)).toDouble()
-        return (50 + (dominance - 0.75) * 65).roundToInt().coerceIn(0, 100)
-    }
+    private fun parseReading(topic: String, payload: String): PlantReading? =
+        readingParser.parse(topic, payload, latestReading)
 
     @Synchronized
     private fun scheduleSave(reading: PlantReading) {
@@ -318,53 +162,6 @@ class MqttManager(
 
     private fun String.isOfflineStatus(): Boolean =
         trim().equals("offline", ignoreCase = true) || trim().equals("online", ignoreCase = true)
-
-    private fun JSONObject.containsOfflineSignal(): Boolean {
-        if (has("online") && opt("online") == false) return true
-
-        //pode ser plaintext, como observado :/
-        val textMessage = optString("message", optString("status", optString("payload", "")))
-        if (textMessage.equals("offline", ignoreCase = true)) return true
-        if (textMessage.equals("online", ignoreCase = true)) return false
-
-        val data = optJSONObject("data")
-        if (data != null) {
-            if (data.has("online") && data.opt("online") == false) return true
-
-            val dataTextMessage = data.optString("message", data.optString("status", ""))
-            if (dataTextMessage.equals("offline", ignoreCase = true)) return true
-        }
-
-        return false
-    }
-
-    private fun JSONObject.firstDouble(vararg keys: String): Double? {
-        keys.forEach { key ->
-            if (has(key) && !isNull(key)) {
-                val value = opt(key)
-                val parsed = when (value) {
-                    is Number -> value.toDouble()
-                    is String -> value.replace(',', '.').toDoubleOrNull()
-                    else -> null
-                }
-                if (parsed != null && parsed.isFinite()) return parsed
-            }
-        }
-        return null
-    }
-
-    private fun JSONObject.firstInt(vararg keys: String): Int? =
-        firstDouble(*keys)?.roundToInt()
-
-    private fun JSONObject.firstString(vararg keys: String): String? {
-        keys.forEach { key ->
-            if (has(key) && !isNull(key)) {
-                val value = optString(key).trim()
-                if (value.isNotEmpty()) return value
-            }
-        }
-        return null
-    }
 
     private companion object {
         const val TAG = "PlantsIOT-MQTT"

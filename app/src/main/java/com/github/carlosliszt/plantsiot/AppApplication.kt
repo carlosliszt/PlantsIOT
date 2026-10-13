@@ -10,6 +10,7 @@ import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import com.github.carlosliszt.plantsiot.model.image.Image
 import com.github.carlosliszt.plantsiot.model.image.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
+import com.github.carlosliszt.plantsiot.controller.ReadingController
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase
 import java.util.concurrent.Executors
@@ -31,6 +32,7 @@ class AppApplication : Application(), MqttManager.Listener {
     private val imageExecutor = Executors.newSingleThreadExecutor()
     private val imageLoader = PlantImageLoader(imageExecutor)
     private var mqttManager: MqttManager? = null
+    private var readingController: ReadingController? = null
     private val listeners = mutableSetOf<MqttManager.Listener>()
     private var connectionState = MqttManager.ConnectionState.CONNECTING
     private var connectionMessage = "Conectando ao HiveMQ..."
@@ -101,9 +103,9 @@ class AppApplication : Application(), MqttManager.Listener {
                 url = if (bitmap == null) "" else "memory",
                 imageSource = if (!base64.isNullOrBlank()) ImageSource.USER else ImageSource.API
             )
-            mqttManager = MqttManager(this, this).also {
-                it.connectAndSubscribe(plant["topic"] as? String ?: "#")
-            }
+            mqttManager = MqttManager(this, this)
+            readingController = mqttManager?.let(::ReadingController)
+            readingController?.connect(plant["topic"] as? String ?: "#")
             finishInitialization(true, null)
         }
         when {
@@ -144,6 +146,7 @@ class AppApplication : Application(), MqttManager.Listener {
         listeners.clear()
         mqttManager?.disconnect()
         mqttManager = null
+        readingController = null
         initialized = false
         initializationInProgress = false
         pendingCallbacks.clear()

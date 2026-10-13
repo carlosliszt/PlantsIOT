@@ -62,7 +62,7 @@ Se a saúde e a pontuação não forem enviadas, o app gera uma indicação auto
 
 ## Como executar
 
-1. Abra a pasta `PlantsIOT-dev` no Android Studio.
+1. Abra a pasta `PlantsIOT` no Android Studio.
 2. Aguarde a sincronização do Gradle.
 3. Use um aparelho ou emulador Android com internet.
 4. Execute o módulo `app`.
@@ -70,7 +70,17 @@ Se a saúde e a pontuação não forem enviadas, o app gera uma indicação auto
 6. Confirme a mensagem verde `Conectado • tópico #`.
 7. Publique as leituras no HiveMQ.
 
-O broker, usuário e senha fornecidos para esta versão já estão configurados em `app/build.gradle.kts`.
+Antes de executar, configure as propriedades locais no arquivo `local.properties`
+(não versionado), por exemplo:
+
+```properties
+MQTT_BROKER=ssl://seu-broker:8883
+MQTT_USER=seu-usuario
+MQTT_PASS=sua-senha
+TREFLE_API_TOKEN=seu-token
+```
+
+O Gradle injeta esses valores no `BuildConfig` somente durante a compilação local.
 
 As configurações de planta, conexão MQTT e conta são apresentadas em seções com ícones. Seus campos
 são editados em modais próprios. Alterações de nome, e-mail e senha exigem a senha atual; a tela de
@@ -85,7 +95,11 @@ login também oferece recuperação de senha por e-mail.
 
 ## Observação de segurança
 
-As credenciais estão incorporadas ao aplicativo para facilitar o teste educacional solicitado. Antes de distribuir publicamente o APK ou publicar o código, crie um usuário MQTT exclusivo com permissões mínimas e troque a senha.
+As credenciais MQTT e do Trefle não devem ser versionadas. Use um usuário MQTT
+exclusivo, com permissões mínimas e tópicos restritos, e configure os valores
+somente em `local.properties`. Antes de distribuir publicamente o APK, considere
+também usar credenciais de curta duração ou um serviço intermediário, pois valores
+injetados no aplicativo ainda podem ser extraídos do APK.
 
 ## Tecnologias
 

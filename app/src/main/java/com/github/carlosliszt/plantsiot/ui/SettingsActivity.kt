@@ -13,6 +13,7 @@ import com.github.carlosliszt.plantsiot.AppApplication
 import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
 import com.github.carlosliszt.plantsiot.controller.PlantController
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
+import com.github.carlosliszt.plantsiot.model.image.ImageSource
 import com.github.carlosliszt.plantsiot.R
 import com.github.carlosliszt.plantsiot.util.DialogStyler
 
@@ -35,9 +36,9 @@ class SettingsActivity : AppCompatActivity() {
 
         plantController.load { plant, error ->
             if (error == null && plant != null) {
-                plantName = plant["name"] as? String ?: plantName
-                plantSpecies = plant["species"] as? String ?: plantSpecies
-                topic = plant["topic"] as? String ?: topic
+                plantName = plant.name.ifBlank { plantName }
+                plantSpecies = plant.species
+                topic = plant.topic.ifBlank { topic }
             }
             renderSummaries()
         }
@@ -59,7 +60,11 @@ class SettingsActivity : AppCompatActivity() {
                 .setPositiveButton("Sair") { _, _ ->
                     (application as AppApplication).clearSession()
                     firebaseRepository.logout()
-                    startActivity(Intent(this, LoginActivity::class.java))
+                    startActivity(
+                        Intent(this, LoginActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                    )
                     finish()
                 }
                 .create()
@@ -244,6 +249,7 @@ class SettingsActivity : AppCompatActivity() {
         dialog: AlertDialog
     ): (Boolean, String?) -> Unit = { success, error ->
         runOnUiThread {
+            if (error == null && !success) return@runOnUiThread
             Toast.makeText(
                 this,
                 if (success) successMessage else error ?: "Não foi possível atualizar a conta.",
@@ -251,6 +257,7 @@ class SettingsActivity : AppCompatActivity() {
             ).show()
             if (success) {
                 accountName = firebaseRepository.currentUser()?.displayName.orEmpty()
+                (application as AppApplication).updateUserName(accountName)
                 renderAccountSummary()
                 dialog.dismiss()
             }
@@ -260,15 +267,33 @@ class SettingsActivity : AppCompatActivity() {
     private fun savePlant(name: String, species: String, dialog: AlertDialog? = null) {
         plantController.save(name, species, topic) { state ->
             runOnUiThread {
+                if (state.loading) return@runOnUiThread
                 if (!state.success) {
                     Toast.makeText(this, state.error ?: "Não foi possível salvar.", Toast.LENGTH_LONG).show()
                     return@runOnUiThread
                 }
                 plantName = name
                 plantSpecies = species
-                renderSummaries()
-                dialog?.dismiss()
-                Toast.makeText(this, "Configurações salvas", Toast.LENGTH_SHORT).show()
+                val app = application as AppApplication
+                val shouldRefreshApiImage =
+                    app.image.imageSource == ImageSource.API &&
+                        app.plant.species != species
+                app.updatePlant(
+                    name = name,
+                    species = species,
+                    topic = topic
+                )
+                app.reconnectMqtt()
+                val completeSave = {
+                    renderSummaries()
+                    dialog?.dismiss()
+                    Toast.makeText(this, "Configurações salvas", Toast.LENGTH_SHORT).show()
+                }
+                if (shouldRefreshApiImage) {
+                    app.restorePlantImage { runOnUiThread { completeSave() } }
+                } else {
+                    completeSave()
+                }
             }
         }
     }

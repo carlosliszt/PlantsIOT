@@ -33,6 +33,7 @@ class RegisterActivity : AppCompatActivity() {
 
             binding.btnRegister.isEnabled = false
             authController.register(name, email, password) { state ->
+                if (state.loading) return@register
                 binding.btnRegister.isEnabled = true
                 if (!state.success) {
                     Toast.makeText(this, state.error ?: "Não foi possível criar a conta.", Toast.LENGTH_LONG).show()

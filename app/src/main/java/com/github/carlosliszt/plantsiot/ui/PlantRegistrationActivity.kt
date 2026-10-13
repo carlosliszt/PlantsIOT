@@ -82,6 +82,7 @@ class PlantRegistrationActivity : AppCompatActivity() {
 
             binding.btnSavePlant.isEnabled = false
             plantController.save(plantName, species, topic) { state ->
+                if (state.loading) return@save
                 binding.btnSavePlant.isEnabled = true
                 if (!state.success) {
                     Toast.makeText(this, state.error ?: "Não foi possível salvar a planta.", Toast.LENGTH_LONG).show()
@@ -113,6 +114,7 @@ class PlantRegistrationActivity : AppCompatActivity() {
             val encoded = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
             plantController.saveImage(encoded) { state ->
                 runOnUiThread {
+                    if (state.loading) return@runOnUiThread
                     if (!state.success) {
                         Toast.makeText(this, state.error ?: "Planta salva, mas a imagem não foi enviada.", Toast.LENGTH_LONG).show()
                     }

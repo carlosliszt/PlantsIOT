@@ -37,6 +37,7 @@ class LoginActivity : AppCompatActivity() {
 
             binding.btnLogin.isEnabled = false
             authController.login(email, password) { state ->
+                if (state.loading) return@login
                 binding.btnLogin.isEnabled = true
                 if (!state.success) {
                     Toast.makeText(this, state.error ?: "Não foi possível entrar.", Toast.LENGTH_LONG).show()
@@ -59,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
             }
             binding.tvForgotPassword.isEnabled = false
             authController.resetPassword(email) { state ->
+                if (state.loading) return@resetPassword
                 binding.tvForgotPassword.isEnabled = true
                 Toast.makeText(
                     this,

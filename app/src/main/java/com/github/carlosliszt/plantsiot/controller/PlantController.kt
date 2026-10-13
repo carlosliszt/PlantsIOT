@@ -1,6 +1,7 @@
 package com.github.carlosliszt.plantsiot.controller
 
 import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
+import com.github.carlosliszt.plantsiot.model.plant.Plant
 
 class PlantController(private val repository: FirebaseRepository = FirebaseRepository()) {
     data class State(val loading: Boolean = false, val success: Boolean = false, val error: String? = null)
@@ -12,7 +13,7 @@ class PlantController(private val repository: FirebaseRepository = FirebaseRepos
         callback(State(loading = true))
         repository.savePlantImageBase64(base64) { ok, error -> callback(State(success = ok, error = error)) }
     }
-    fun load(callback: (Map<String, Any>?, String?) -> Unit) =
+    fun load(callback: (Plant?, String?) -> Unit) =
         repository.loadPlant(onResult = callback)
     fun removeImage(callback: (State) -> Unit) {
         callback(State(loading = true))

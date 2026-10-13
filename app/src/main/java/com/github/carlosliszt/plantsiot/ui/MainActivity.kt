@@ -12,6 +12,7 @@ import com.github.carlosliszt.plantsiot.databinding.ActivityMainBinding
 import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
 import com.github.carlosliszt.plantsiot.util.ReadingNotification
+import com.github.carlosliszt.plantsiot.controller.MainController
 
 class MainActivity : AppCompatActivity(), MqttManager.Listener {
 
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity(), MqttManager.Listener {
     private var mainReady = false
     private var activityVisible = false
     private var lastNotifiedTimestamp = 0L
+    private val mainController by lazy { MainController(app) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,12 +35,12 @@ class MainActivity : AppCompatActivity(), MqttManager.Listener {
         ReadingNotification.requestPermission(this, NOTIFICATION_PERMISSION)
         lastNotifiedTimestamp = ReadingStore(this).latest()?.timestamp ?: 0L
 
-        if (app.firebaseRepository.currentUser() == null) {
+        if (!mainController.isAuthenticated()) {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return
         }
-        app.initialize { success, error ->
+        mainController.initialize { success, error ->
             runOnUiThread {
                 if (!success) {
                     if (error == "Nenhuma planta cadastrada.") {
@@ -83,6 +85,7 @@ class MainActivity : AppCompatActivity(), MqttManager.Listener {
     override fun onStart() {
         super.onStart()
         activityVisible = true
+        binding.tvWelcome.text = "Olá, ${app.userName}"
         if (app.initialized) {
             mainReady = true
             app.addMqttListener(this)
@@ -101,7 +104,7 @@ class MainActivity : AppCompatActivity(), MqttManager.Listener {
     override fun onReading(reading: PlantReading) {
         if (!mainReady || reading.timestamp <= lastNotifiedTimestamp) return
         lastNotifiedTimestamp = reading.timestamp
-        val plantName = app.plant["name"] as? String ?: "Planta"
+        val plantName = mainController.plantName()
         ReadingNotification.show(this, plantName, reading)
     }
 

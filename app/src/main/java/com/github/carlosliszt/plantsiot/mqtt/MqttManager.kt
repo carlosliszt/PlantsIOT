@@ -141,6 +141,14 @@ class MqttManager(
     }
 
     fun disconnect() {
+        closeConnection(shutdown = true)
+    }
+
+    fun pause() {
+        closeConnection(shutdown = false)
+    }
+
+    private fun closeConnection(shutdown: Boolean) {
         if (
             latestReading.timestamp > lastSavedTimestamp &&
             !latestReading.healthStatus.isOfflineStatus()
@@ -150,13 +158,15 @@ class MqttManager(
             lastSavedTimestamp = latestReading.timestamp
         }
         pendingSave?.cancel(false)
-        saveExecutor.shutdownNow()
+        if (shutdown) saveExecutor.shutdownNow()
+        notifyConnection(ConnectionState.DISCONNECTED, "Desconectado")
         networkExecutor.execute {
             runCatching {
                 client?.takeIf { it.isConnected }?.disconnect()
                 client?.close()
+                client = null
             }.onFailure { Log.e(TAG, "Erro ao desconectar", it) }
-            networkExecutor.shutdown()
+            if (shutdown) networkExecutor.shutdown()
         }
     }
 

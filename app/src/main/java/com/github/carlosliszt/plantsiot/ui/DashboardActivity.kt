@@ -17,7 +17,7 @@ import com.github.carlosliszt.plantsiot.BuildConfig
 import com.github.carlosliszt.plantsiot.R
 import com.github.carlosliszt.plantsiot.data.local.ReadingStore
 import com.github.carlosliszt.plantsiot.AppApplication
-import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
+import com.github.carlosliszt.plantsiot.controller.DashboardController
 import com.github.carlosliszt.plantsiot.databinding.ActivityDashboardBinding
 import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import com.github.carlosliszt.plantsiot.model.image.ImageSource
@@ -43,9 +43,8 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
     private lateinit var binding: ActivityDashboardBinding
     private val app: AppApplication
         get() = application as AppApplication
-    private val firebaseRepository: FirebaseRepository
-        get() = app.firebaseRepository
     private val imageExecutor = Executors.newSingleThreadExecutor()
+    private val dashboardController by lazy { DashboardController(app, executor = imageExecutor) }
     private val choosePhoto = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri -> uri?.let(::uploadPlantImage) }
@@ -79,9 +78,9 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
         ReadingNotification.prepare(this)
         ReadingNotification.requestPermission(this, NOTIFICATION_PERMISSION)
 
-        currentPlantName = app.plant["name"] as? String ?: currentPlantName
-        currentPlantSpecies = app.plant["species"] as? String ?: currentPlantSpecies
-        currentTopic = app.plant["topic"] as? String ?: currentTopic
+        currentPlantName = app.plant.name.ifBlank { currentPlantName }
+        currentPlantSpecies = app.plant.species.ifBlank { currentPlantSpecies }
+        currentTopic = app.plant.topic.ifBlank { currentTopic }
         renderHeader()
         app.plantImage?.let(binding.ivPlantImage::setImageBitmap)
         binding.tvApiImageNotice.visibility =
@@ -90,9 +89,8 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
             lastNotifiedTimestamp = it.timestamp
             renderReading(it)
         }
-        app.addMqttListener(this)
+        dashboardController.start(this)
         dashboardReady = true
-        app.ensureMqttConnected()
 
         binding.btnReturn.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
@@ -202,70 +200,28 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     private fun removePlantPhoto() {
         binding.btnRemovePlantPhoto.isEnabled = false
-        firebaseRepository.removePlantImage { success, error ->
+        dashboardController.remove { success, error ->
             runOnUiThread {
                 binding.btnRemovePlantPhoto.isEnabled = true
                 if (!success) {
-                    Toast.makeText(
-                        this,
-                        error ?: "Não foi possível remover a foto.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                    Toast.makeText(this, error ?: "Não foi possível remover a foto.", Toast.LENGTH_LONG).show()
                     return@runOnUiThread
                 }
-
-                app.restorePlantImage { bitmap ->
-                    runOnUiThread {
-                        if (bitmap != null) {
-                            binding.ivPlantImage.setImageBitmap(bitmap)
-                        } else {
-                            binding.ivPlantImage.setImageDrawable(null)
-                        }
-                        Toast.makeText(
-                            this,
-                            "Foto removida.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+                app.plantImage?.let(binding.ivPlantImage::setImageBitmap)
+                    ?: binding.ivPlantImage.setImageDrawable(null)
+                Toast.makeText(this, "Foto removida.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun savePlantBitmap(bitmap: Bitmap) {
-        val output = ByteArrayOutputStream()
-        val maxDimension = 1280
-        val scale = minOf(
-            1f,
-            maxDimension.toFloat() / maxOf(bitmap.width, bitmap.height)
-        )
-        val compressedBitmap = if (scale < 1f) {
-            Bitmap.createScaledBitmap(
-                bitmap,
-                (bitmap.width * scale).toInt(),
-                (bitmap.height * scale).toInt(),
-                true
-            )
-        } else {
-            bitmap
-        }
-        if (!compressedBitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)) {
-            if (compressedBitmap !== bitmap) compressedBitmap.recycle()
+        dashboardController.upload(bitmap) { state ->
             runOnUiThread {
-                Toast.makeText(this, "Não foi possível preparar a foto.", Toast.LENGTH_LONG).show()
-            }
-            return
-        }
-        if (compressedBitmap !== bitmap) compressedBitmap.recycle()
-        val imageBase64 = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
-        firebaseRepository.savePlantImageBase64(imageBase64) { success, error ->
-            runOnUiThread {
-                if (success) {
-                    app.updatePlantImage(bitmap)
+                if (state.success) {
                     binding.ivPlantImage.setImageBitmap(bitmap)
                     Toast.makeText(this, "Foto da planta salva", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, error ?: "Não foi possível salvar a foto.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, state.error ?: "Não foi possível salvar a foto.", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -276,7 +232,7 @@ class DashboardActivity : AppCompatActivity(), MqttManager.Listener {
 
     override fun onDestroy() {
         imageExecutor.shutdownNow()
-        app.removeMqttListener(this)
+        dashboardController.stop(this)
         super.onDestroy()
     }
 

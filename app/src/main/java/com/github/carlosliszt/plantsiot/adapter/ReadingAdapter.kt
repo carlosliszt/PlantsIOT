@@ -58,7 +58,7 @@ class ReadingAdapter(private val items: List<PlantReading>) :
             )
             normalizedStatus.contains("murch") ||
                 normalizedStatus.contains("seca") ||
-                score < 60 -> android.graphics.Color.rgb(158, 117, 85)
+                score < 60 -> android.graphics.Color.rgb(255,117,24)
             normalizedStatus.contains("amarel") ||
                 score < 80 -> ContextCompat.getColor(
                 context,

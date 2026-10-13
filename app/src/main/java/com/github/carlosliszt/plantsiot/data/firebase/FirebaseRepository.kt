@@ -2,6 +2,7 @@ package com.github.carlosliszt.plantsiot.data.firebase
 
 import com.github.carlosliszt.plantsiot.data.image.PlantImageCache
 import com.github.carlosliszt.plantsiot.model.plant.PlantReading
+import com.github.carlosliszt.plantsiot.model.plant.Plant
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
@@ -228,11 +229,10 @@ class FirebaseRepository {
         val plantData = mapOf(
             "name" to plantName,
             "species" to plantSpecies,
-            "topic" to topic,
-            "readings" to emptyMap<String, Any>()
+            "topic" to topic
         )
 
-        database.child("plants").child(uid).child(plantId).setValue(plantData)
+        database.child("plants").child(uid).child(plantId).updateChildren(plantData)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete?.invoke(true, null)
@@ -242,7 +242,7 @@ class FirebaseRepository {
             }
     }
 
-    fun loadPlant(plantId: String = DEFAULT_PLANT_ID, onResult: (Map<String, Any>?, String?) -> Unit) {
+    fun loadPlant(plantId: String = DEFAULT_PLANT_ID, onResult: (Plant?, String?) -> Unit) {
         val uid = auth.currentUser?.uid ?: run {
             onResult(null, "Usuário não autenticado.")
             return
@@ -251,8 +251,19 @@ class FirebaseRepository {
         database.child("plants").child(uid).child(plantId)
             .get()
             .addOnSuccessListener { snapshot ->
-                val value = snapshot.getValue() as? Map<*, *>?
-                onResult(value?.mapKeys { it.key as String }?.mapValues { it.value as Any }, null)
+                val value = snapshot.getValue() as? Map<*, *>
+                onResult(
+                    value?.let {
+                        Plant(
+                            name = it["name"] as? String ?: "",
+                            species = it["species"] as? String ?: "",
+                            topic = it["topic"] as? String ?: "",
+                            imageBase64 = it["imageBase64"] as? String ?: "",
+                            imageUrl = it["imageUrl"] as? String ?: ""
+                        )
+                    },
+                    null
+                )
             }
             .addOnFailureListener { error ->
                 onResult(null, error.message ?: "Falha ao carregar planta.")

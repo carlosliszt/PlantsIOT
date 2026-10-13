@@ -1,7 +1,7 @@
 package com.github.carlosliszt.plantsiot.util
 
 import android.graphics.Color
-import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 
 object PlantHealth {
     fun color(reading: PlantReading): Int {

@@ -1,7 +1,7 @@
-package com.github.carlosliszt.plantsiot.data
+package com.github.carlosliszt.plantsiot.data.local
 
 import android.content.Context
-import com.github.carlosliszt.plantsiot.model.PlantReading
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import org.json.JSONArray
 import org.json.JSONObject
 

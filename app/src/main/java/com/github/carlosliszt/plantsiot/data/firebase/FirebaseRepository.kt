@@ -1,9 +1,12 @@
-package com.github.carlosliszt.plantsiot.data
+package com.github.carlosliszt.plantsiot.data.firebase
 
-import com.github.carlosliszt.plantsiot.model.PlantReading
-import com.google.firebase.auth.FirebaseAuth
+import com.github.carlosliszt.plantsiot.data.image.PlantImageCache
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
+import kotlin.collections.get
 
 class FirebaseRepository {
 
@@ -130,7 +133,7 @@ class FirebaseRepository {
                 return@reauthenticate
             }
             user.updateProfile(
-                com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                UserProfileChangeRequest.Builder()
                     .setDisplayName(name)
                     .build()
             ).addOnCompleteListener { task ->

@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.github.carlosliszt.plantsiot.AppApplication
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivitySettingsBinding
 import com.github.carlosliszt.plantsiot.R
 import com.github.carlosliszt.plantsiot.util.DialogStyler

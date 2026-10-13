@@ -1,4 +1,4 @@
-package com.github.carlosliszt.plantsiot.model
+package com.github.carlosliszt.plantsiot.model.plant
 
 data class Plant(
     val name: String = "",

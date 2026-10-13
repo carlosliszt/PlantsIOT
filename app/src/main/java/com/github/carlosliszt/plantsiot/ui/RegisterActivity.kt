@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
 import com.github.carlosliszt.plantsiot.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {

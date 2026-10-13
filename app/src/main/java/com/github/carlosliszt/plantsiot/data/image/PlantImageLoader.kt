@@ -1,11 +1,13 @@
-package com.github.carlosliszt.plantsiot.data
+package com.github.carlosliszt.plantsiot.data.image
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import com.github.carlosliszt.plantsiot.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
+import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -30,7 +32,7 @@ class PlantImageLoader(private val executor: ExecutorService) {
         executor.execute {
             val bitmap = try {
                 downloadBitmap(imageUrl)
-            } catch (_: java.io.IOException) {
+            } catch (_: IOException) {
                 null
             } catch (_: IllegalArgumentException) {
                 null
@@ -58,9 +60,9 @@ class PlantImageLoader(private val executor: ExecutorService) {
                     URLEncoder.encode(scientificName.trim(), Charsets.UTF_8.name())
                 val imageUrl = requestImageUrl(endpoint, normalizedName)
                 imageUrl?.let(::downloadBitmap)
-            } catch (_: java.io.IOException) {
+            } catch (_: IOException) {
                 null
-            } catch (_: org.json.JSONException) {
+            } catch (_: JSONException) {
                 null
             } catch (_: IllegalArgumentException) {
                 null

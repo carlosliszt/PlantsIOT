@@ -2,13 +2,13 @@ package com.github.carlosliszt.plantsiot
 
 import android.app.Application
 import android.graphics.Bitmap
-import com.github.carlosliszt.plantsiot.data.PlantImageCache
-import com.github.carlosliszt.plantsiot.data.FirebaseRepository
-import com.github.carlosliszt.plantsiot.data.PlantImageLoader
-import com.github.carlosliszt.plantsiot.data.ReadingStore
-import com.github.carlosliszt.plantsiot.model.PlantReading
-import com.github.carlosliszt.plantsiot.model.Image
-import com.github.carlosliszt.plantsiot.model.ImageSource
+import com.github.carlosliszt.plantsiot.data.image.PlantImageCache
+import com.github.carlosliszt.plantsiot.data.firebase.FirebaseRepository
+import com.github.carlosliszt.plantsiot.data.image.PlantImageLoader
+import com.github.carlosliszt.plantsiot.data.local.ReadingStore
+import com.github.carlosliszt.plantsiot.model.plant.PlantReading
+import com.github.carlosliszt.plantsiot.model.image.Image
+import com.github.carlosliszt.plantsiot.model.image.ImageSource
 import com.github.carlosliszt.plantsiot.mqtt.MqttManager
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.FirebaseDatabase

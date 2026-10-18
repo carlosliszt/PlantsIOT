@@ -1,26 +1,91 @@
-# PlantsIOT — monitoramento pelo HiveMQ
+#  PlantsIOT — Monitoramento Inteligente de Plantas
 
-Aplicativo Android em Kotlin para acompanhar uma planta em tempo real. Esta versão foi preparada para receber dados do HiveMQ Cloud por MQTT com TLS na porta 8883, exibi-los no dashboard e manter um histórico local no aparelho.
+Aplicativo Android desenvolvido em **Kotlin** para monitorar informações de plantas por meio da Internet das Coisas (IoT). O projeto utiliza comunicação MQTT com o HiveMQ Cloud para receber dados de sensores, exibir as informações em um dashboard e armazenar um histórico local das leituras.
 
-## Dados exibidos
+##  Índice
 
-- temperatura do ar;
-- umidade do ar;
-- umidade do solo;
-- luminosidade;
-- pH;
-- cor RGB (R, G e B), incluindo uma amostra visual da cor;
-- situação de saúde e pontuação de 0 a 100;
-- altura, observações, tópico de origem e payload bruto;
-- estado da conexão e horário da última atualização.
+- [Sobre o projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Tecnologias utilizadas](#-tecnologias-utilizadas)
+- [Arquitetura do sistema](#-arquitetura-do-sistema)
+- [Formato das mensagens MQTT](#-formato-das-mensagens-mqtt)
+- [Como executar](#-como-executar)
+- [Solução de problemas](#-solução-de-problemas)
+- [Segurança](#-segurança)
+- [Objetivo do projeto](#-objetivo-do-projeto)
 
-O app aceita tanto um JSON completo quanto valores enviados em tópicos separados. O filtro MQTT padrão é `#`, portanto todas as mensagens permitidas para o usuário do HiveMQ são recebidas. O filtro pode ser alterado em **Configurações**.
+##  Sobre o projeto
 
-## Formato 1 — JSON completo
+O **PlantsIOT** foi desenvolvido para facilitar o acompanhamento das condições de uma planta por meio de dados enviados por dispositivos IoT, como o ESP32.
 
-Pode ser publicado, por exemplo, em `planta/esp32cam/analysis` ou `estufa/dados`:
+A aplicação recebe informações através do protocolo MQTT, utilizando o HiveMQ Cloud como broker, e apresenta as leituras em uma interface organizada e intuitiva.
 
-```json
+O sistema aceita tanto mensagens em formato JSON completo quanto valores publicados em tópicos MQTT separados, oferecendo flexibilidade na integração com diferentes dispositivos.
+
+##  Funcionalidades
+
+-  **Temperatura do ar:** acompanhamento da temperatura ambiente.
+-  **Umidade do ar:** visualização da umidade relativa do ambiente.
+-  **Umidade do solo:** acompanhamento das condições de umidade do substrato.
+-  **Luminosidade:** monitoramento dos níveis de luz.
+-  **pH:** exibição do valor de pH informado pelo dispositivo.
+-  **Identificação de cores RGB:** apresentação dos valores vermelho, verde e azul, incluindo uma amostra visual da cor.
+-  **Indicador de saúde:** exibição da situação da planta e de uma pontuação de 0 a 100, quando disponível.
+-  **Informações adicionais:** visualização da altura, observações, tópico de origem e conteúdo da mensagem recebida.
+-  **Comunicação MQTT:** conexão com o HiveMQ Cloud utilizando TLS.
+-  **Dashboard:** centralização das informações recebidas.
+-  **Histórico local:** armazenamento de até 200 leituras no dispositivo.
+-  **Configurações:** personalização do filtro MQTT e das configurações da planta e da conexão.
+-  **Gerenciamento de conta:** telas para edição de informações da conta e recuperação de senha por e-mail.
+
+> **Observação:** quando os dados de saúde não são enviados, o aplicativo pode gerar uma indicação baseada na predominância RGB. Essa indicação é apenas orientativa e não substitui uma avaliação agronômica.
+
+##  Tecnologias utilizadas
+
+| Tecnologia | Aplicação no projeto |
+|---|---|
+| Kotlin | Desenvolvimento da aplicação Android |
+| Android XML | Construção das interfaces |
+| MQTT | Comunicação entre o aplicativo e os dispositivos IoT |
+| HiveMQ Cloud | Broker responsável pela comunicação MQTT |
+| TLS | Proteção da conexão com o broker |
+| Eclipse Paho MQTT 3.1.1 | Cliente MQTT utilizado na comunicação |
+| MPAndroidChart | Visualização de gráficos |
+| SharedPreferences | Armazenamento local do histórico |
+| Gradle | Configuração e compilação do projeto |
+
+##  Arquitetura do sistema
+
+O funcionamento do PlantsIOT pode ser dividido em quatro etapas principais:
+
+1. **Coleta de dados:** sensores realizam medições das condições ambientais.
+2. **Transmissão:** um dispositivo IoT publica os valores em tópicos MQTT.
+3. **Comunicação:** o HiveMQ Cloud recebe as mensagens e as disponibiliza aos clientes autorizados.
+4. **Visualização:** o aplicativo interpreta os dados, atualiza o dashboard e armazena as leituras localmente.
+
+### Fluxo de comunicação
+
+\`\`\`text
+Sensores
+   ↓
+Dispositivo IoT (ex.: ESP32)
+   ↓ MQTT + TLS
+HiveMQ Cloud
+   ↓ MQTT
+Aplicativo Android (Kotlin)
+   ↓
+Dashboard e histórico local
+\`\`\`
+
+##  Formato das mensagens MQTT
+
+O aplicativo permite receber informações de duas maneiras: por meio de um JSON completo ou por valores enviados em tópicos separados.
+
+### 1. Mensagem JSON completa
+
+Exemplo de mensagem que pode ser publicada no tópico `planta/esp32cam/analysis` ou `estufa/dados`:
+
+\`\`\`json
 {
   "temperatura": 26.4,
   "umidadeAr": 61.0,
@@ -37,14 +102,18 @@ Pode ser publicado, por exemplo, em `planta/esp32cam/analysis` ou `estufa/dados`
   "heightCm": 18.5,
   "notes": "Folhas com boa predominância de verde"
 }
-```
+\`\`\`
 
-Também são aceitos nomes equivalentes em inglês, como `temperature`, `airHumidity`, `soilMoisture`, `luminosity`, `healthStatus`, `red`, `green` e `blue`.
+Os valores apresentados são fictícios e servem apenas como exemplo.
 
-## Formato 2 — tópicos separados
+O aplicativo também aceita nomes equivalentes em inglês, como `temperature`, `airHumidity`, `soilMoisture`, `luminosity`, `healthStatus`, `red`, `green` e `blue`.
+
+### 2. Mensagens em tópicos separados
+
+Também é possível enviar cada informação individualmente.
 
 | Tópico sugerido | Exemplo de payload |
-| --- | --- |
+|---|---|
 | `estufa/temperatura` | `26.4` |
 | `estufa/umidade/ar` | `61` |
 | `estufa/umidade/solo` | `48` |
@@ -56,55 +125,81 @@ Também são aceitos nomes equivalentes em inglês, como `temperature`, `airHumi
 | `estufa/saude` | `Saudável` |
 | `estufa/healthScore` | `91` |
 
-O reconhecedor usa o nome do tópico, portanto também entende raízes como `planta/...` e `esp32/...`, além de termos em inglês.
+Os tópicos são exemplos e podem ser adaptados conforme a configuração do dispositivo. O reconhecedor também aceita raízes como `planta/...` e `esp32/...`, além de termos em inglês.
 
-Se a saúde e a pontuação não forem enviadas, o app gera uma indicação automática baseada na predominância RGB. Essa indicação é apenas orientativa e não substitui uma análise agronômica.
+O filtro MQTT padrão é `#`, que permite receber todas as mensagens autorizadas pelas credenciais utilizadas. Esse filtro pode ser alterado nas configurações do aplicativo.
 
-## Como executar
+##  Como executar
 
-1. Abra a pasta `PlantsIOT` no Android Studio.
-2. Aguarde a sincronização do Gradle.
-3. Use um aparelho ou emulador Android com internet.
-4. Execute o módulo `app`.
-5. Na tela inicial, abra **Dashboard**.
-6. Confirme a mensagem verde `Conectado • tópico #`.
-7. Publique as leituras no HiveMQ.
+### Pré-requisitos
 
-Antes de executar, configure as propriedades locais no arquivo `local.properties`
-(não versionado), por exemplo:
+- Android Studio;
+- JDK compatível com a configuração Gradle do projeto;
+- dispositivo Android ou emulador com acesso à internet;
+- broker configurado no HiveMQ Cloud;
+- credenciais MQTT válidas.
 
-```properties
+### Instalação
+
+**1. Clone o repositório:**
+
+\`\`\`bash
+git clone https://github.com/carlosliszt/PlantsIOT.git
+\`\`\`
+
+**2. Abra o projeto no Android Studio.**
+
+Abra a pasta `PlantsIOT` e aguarde a sincronização do Gradle.
+
+**3. Configure as propriedades locais.**
+
+No arquivo `local.properties`, localizado na raiz do projeto, configure os dados necessários para a conexão:
+
+\`\`\`properties
 MQTT_BROKER=ssl://seu-broker:8883
 MQTT_USER=seu-usuario
 MQTT_PASS=sua-senha
 TREFLE_API_TOKEN=seu-token
-```
+\`\`\`
 
-O Gradle injeta esses valores no `BuildConfig` somente durante a compilação local.
+Substitua os valores de exemplo pelas suas próprias credenciais. Os nomes das propriedades devem corresponder aos utilizados na configuração Gradle do projeto.
 
-As configurações de planta, conexão MQTT e conta são apresentadas em seções com ícones. Seus campos
-são editados em modais próprios. Alterações de nome, e-mail e senha exigem a senha atual; a tela de
-login também oferece recuperação de senha por e-mail.
+**4. Execute o aplicativo.**
 
-## Diagnóstico rápido
+Selecione o módulo `app` e execute-o em um dispositivo ou emulador Android com acesso à internet.
 
-- **Usuário ou senha inválidos:** revise as credenciais do HiveMQ Cloud.
-- **Sem permissão para #:** libere a assinatura desse filtro no HiveMQ ou troque em Configurações por um filtro autorizado, por exemplo `estufa/#`.
-- **Conectado, mas sem valores:** confirme que o ESP32 publica nesse mesmo cluster e que o payload corresponde a um dos formatos acima.
-- **Valor chega, mas não é identificado:** o tópico e o payload ainda aparecem no cartão “Detalhes da leitura”, facilitando a correção.
+**5. Verifique a conexão.**
 
-## Observação de segurança
+Abra o Dashboard e confirme o estado da conexão MQTT. Em seguida, publique mensagens nos tópicos configurados para visualizar as leituras.
 
-As credenciais MQTT e do Trefle não devem ser versionadas. Use um usuário MQTT
-exclusivo, com permissões mínimas e tópicos restritos, e configure os valores
-somente em `local.properties`. Antes de distribuir publicamente o APK, considere
-também usar credenciais de curta duração ou um serviço intermediário, pois valores
-injetados no aplicativo ainda podem ser extraídos do APK.
+O Gradle utiliza essas propriedades durante a compilação local para configurar o `BuildConfig`.
 
-## Tecnologias
+##  Solução de problemas
 
-- Kotlin e Android XML;
-- Eclipse Paho MQTT 3.1.1;
-- HiveMQ Cloud com TLS;
-- MPAndroidChart;
-- `SharedPreferences` para histórico local de até 200 leituras.
+| Problema | Possível solução |
+|---|---|
+| Falha na conexão MQTT | Verifique o endereço do broker, a porta 8883 e as credenciais. |
+| Usuário ou senha inválidos | Confira as credenciais configuradas no HiveMQ Cloud. |
+| Falta de permissão para o tópico `#` | Utilize um filtro autorizado, como `estufa/#`, de acordo com as permissões do broker. |
+| Dashboard sem leituras | Confirme se o dispositivo publica no mesmo cluster e se os tópicos correspondem ao filtro configurado. |
+| Mensagem não reconhecida | Verifique o formato do JSON e o nome do tópico. Consulte o cartão de detalhes da leitura para visualizar o tópico de origem e o payload recebido. |
+
+##  Segurança
+
+Para manter o projeto mais seguro:
+
+- Não publique credenciais MQTT ou tokens de API no repositório.
+- Mantenha os dados sensíveis em `local.properties` e confirme que esse arquivo não está sendo versionado.
+- Utilize um usuário MQTT exclusivo, com permissões mínimas e acesso apenas aos tópicos necessários.
+- Evite compartilhar credenciais pessoais em ambientes públicos.
+- Antes de distribuir o APK, considere que valores incorporados durante a compilação podem ser extraídos do aplicativo. Para ambientes de produção, avalie utilizar um serviço intermediário para gerenciar o acesso aos dados.
+
+##  Objetivo do projeto
+
+O PlantsIOT tem como objetivo demonstrar a integração entre **desenvolvimento Android, Internet das Coisas (IoT), comunicação MQTT e visualização de dados**.
+
+A proposta é facilitar o acompanhamento de informações relacionadas às plantas por meio de uma aplicação móvel conectada a dispositivos sensores.
+
+---
+
+Desenvolvido com foco em tecnologia, conectividade e monitoramento inteligente de plantas.

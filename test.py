@@ -141,6 +141,27 @@ def build_additional_readings():
 readings.extend(build_additional_readings())
 
 
+def ask_example_count():
+    total = len(readings)
+    while True:
+        try:
+            value = int(
+                input(
+                    f"Quantos exemplos deseja publicar? "
+                    f"(1-{total}, padrão {total}): "
+                ).strip()
+                or total
+            )
+        except ValueError:
+            print("Informe um número inteiro.")
+            continue
+
+        if 1 <= value <= total:
+            return value
+
+        print(f"Informe uma quantidade entre 1 e {total}.")
+
+
 def build_message(reading):
     timestamp = int(time.time() * 1000)
     data = {
@@ -152,6 +173,7 @@ def build_message(reading):
     return json.dumps({"data": data}, ensure_ascii=False)
 
 
+examples_to_publish = ask_example_count()
 client = mqtt.Client()
 client.username_pw_set(USERNAME, PASSWORD)
 client.tls_set()
@@ -161,21 +183,25 @@ try:
     client.loop_start()
     print(f"Conectado ao broker MQTT. Publicando em: {TOPIC}")
 
-    for index, reading in enumerate(readings, start=1):
+    selected_readings = readings[:examples_to_publish]
+    for index, reading in enumerate(selected_readings, start=1):
         message = build_message(reading)
         result = client.publish(TOPIC, message, qos=1)
         result.wait_for_publish(timeout=2)
 
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
             print(
-                f"[{index}/{len(readings)}] "
+                f"[{index}/{len(selected_readings)}] "
                 f"{reading['healthStatus']} enviado com sucesso"
             )
             print(message)
         else:
-            print(f"[{index}/{len(readings)}] Falha ao publicar: código {result.rc}")
+            print(
+                f"[{index}/{len(selected_readings)}] "
+                f"Falha ao publicar: código {result.rc}"
+            )
 
-        if index < len(readings):
+        if index < len(selected_readings):
             time.sleep(INTERVAL_SECONDS)
 
 except KeyboardInterrupt:

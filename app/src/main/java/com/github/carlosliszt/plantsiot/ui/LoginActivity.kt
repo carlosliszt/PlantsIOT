@@ -34,6 +34,11 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, "Preencha e-mail e senha", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.etEmail.error = "Informe um e-mail válido."
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
+            }
 
             binding.btnLogin.isEnabled = false
             authController.login(email, password) { state ->
@@ -56,6 +61,11 @@ class LoginActivity : AppCompatActivity() {
             val email = binding.etEmail.text.toString().trim()
             if (email.isEmpty()) {
                 Toast.makeText(this, "Informe seu e-mail para recuperar a senha.", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.etEmail.error = "Informe um e-mail válido."
+                binding.etEmail.requestFocus()
                 return@setOnClickListener
             }
             binding.tvForgotPassword.isEnabled = false

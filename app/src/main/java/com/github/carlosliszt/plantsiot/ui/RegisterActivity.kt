@@ -30,6 +30,16 @@ class RegisterActivity : AppCompatActivity() {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.etEmail.error = "Informe um e-mail válido."
+                binding.etEmail.requestFocus()
+                return@setOnClickListener
+            }
+            if (password.length < 6) {
+                binding.etPassword.error = "A senha deve ter pelo menos 6 caracteres."
+                binding.etPassword.requestFocus()
+                return@setOnClickListener
+            }
 
             binding.btnRegister.isEnabled = false
             authController.register(name, email, password) { state ->

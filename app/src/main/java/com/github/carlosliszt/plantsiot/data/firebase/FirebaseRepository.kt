@@ -5,6 +5,7 @@ import com.github.carlosliszt.plantsiot.model.plant.PlantReading
 import com.github.carlosliszt.plantsiot.model.plant.Plant
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.database.FirebaseDatabase
 import kotlin.collections.get
@@ -58,7 +59,7 @@ class FirebaseRepository {
                 if (task.isSuccessful) {
                     onComplete(true, null)
                 } else {
-                    onComplete(false, task.exception?.message ?: "Não foi possível fazer login.")
+                    onComplete(false, authErrorMessage(task.exception, "Não foi possível fazer login."))
                 }
             }
     }
@@ -72,7 +73,7 @@ class FirebaseRepository {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
-                    onComplete(false, task.exception?.message ?: "Erro ao criar a conta.")
+                    onComplete(false, authErrorMessage(task.exception, "Erro ao criar a conta."))
                     return@addOnCompleteListener
                 }
 
@@ -198,8 +199,30 @@ class FirebaseRepository {
             onComplete(
                 task.isSuccessful,
                 if (task.isSuccessful) null else
-                    task.exception?.message ?: "Falha ao enviar o e-mail de recuperação."
+                    authErrorMessage(task.exception, "Falha ao enviar o e-mail de recuperação.")
             )
+        }
+    }
+
+    private fun authErrorMessage(error: Exception?, fallback: String): String {
+        val code = (error as? FirebaseAuthException)?.errorCode.orEmpty()
+        return when {
+            code.endsWith("INVALID_EMAIL") ->
+                "Informe um e-mail válido."
+            code.endsWith("USER_NOT_FOUND") || code.endsWith("INVALID_CREDENTIAL") ||
+                code.endsWith("WRONG_PASSWORD") ->
+                "E-mail ou senha inválidos."
+            code.endsWith("EMAIL_ALREADY_IN_USE") ->
+                "Este e-mail já está cadastrado."
+            code.endsWith("WEAK_PASSWORD") ->
+                "A senha deve ter pelo menos 6 caracteres."
+            code.endsWith("USER_DISABLED") ->
+                "Esta conta está desativada."
+            code.endsWith("TOO_MANY_REQUESTS") ->
+                "Muitas tentativas. Aguarde alguns minutos e tente novamente."
+            code.endsWith("NETWORK_REQUEST_FAILED") ->
+                "Não foi possível conectar ao servidor. Verifique sua internet."
+            else -> fallback
         }
     }
 
